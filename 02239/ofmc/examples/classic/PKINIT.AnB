@@ -1,14 +1,16 @@
 Protocol: Kerberos_PKINIT
 
-Types: Agent C,ath,g,s;
-       Number N1,N2,T0,T1,T2,Payload,tag;
-       Function pk,hash,sk;
-       Symmetric_key KCG,KCS,Ktemp,skag,skgs
+Types: 
+	Agent C,ath,g,s;
+	Number N1,N2,T0,T1,T2,Payload,tag;
+	Function pk,hash,sk;
+	Symmetric_key KCG,KCS,Ktemp,skag,skgs
 
-Knowledge: C: C,ath,g,s,pk(ath),pk(C),inv(pk(C)),hash,tag,pk;
-	   ath: C,ath,g,pk(C),pk(ath),inv(pk(ath)),hash,skag,tag;
-	   g: ath,g,skag,skgs,hash,tag;
-	   s: g,s,skgs,hash,tag
+Knowledge: 
+	C: C,ath,g,s,pk(ath),pk(C),inv(pk(C)),hash,tag,pk;
+	ath: C,ath,g,pk(C),pk(ath),inv(pk(ath)),hash,skag,tag;
+	g: ath,g,skag,skgs,hash,tag;
+	s: g,s,skgs,hash,tag
 
 where C!=ath
 
@@ -18,20 +20,20 @@ Actions:
 C -> ath: C,g,N1,{T0,N1,hash(C,g,N1)}inv(pk(C))   
 
 ath -> C: C,
-	({|ath,C,g,KCG,T1|}skag),
-        ({|g,KCG,T1,N1|}Ktemp),
-        { tag,{Ktemp}inv(pk(ath))}pk(C)
+	({|ath,C,g,KCG,T1|}skag),                 # C connait pas ça car il n'a pas skag, mais il peut le renvoyer
+        ({|g,KCG,T1,N1|}Ktemp),               # C connait Ktemp, g, KCG, T1, N1
+        { tag,{Ktemp}inv(pk(ath))}pk(C)       # C connait tag et Ktemp
 
 C -> g: s,N2,
-	({|ath,C,g,KCG,T1|}skag),
-	({|C,T1|}KCG)
+	({|ath,C,g,KCG,T1|}skag), 			# Il renvoit le même message qu'il ne connait pas
+	({|C,T1|}KCG)						# Il connait KCG, il crypte donc ce message avec T1.
 
 g -> C: C,
-	({|C,s,KCS,T2|}skgs),
-	{|s,KCS,T2,N2|}KCG
+	({|C,s,KCS,T2|}skgs),				# C ne connait pas skgs, donc il ne connait ni T2, ni KCS
+	{|s,KCS,T2,N2|}KCG					# C peut décrypter et connait donc s, T2, N2, KCS
 
-C -> s: ({|C,s,KCS,T2|}skgs),
-	{|C,hash(T2)|}KCS
+C -> s: ({|C,s,KCS,T2|}skgs),			# C renvoit le même message que précedemment, {|C,s,KCS,T2|}skgs.
+	{|C,hash(T2)|}KCS					# C connait tout
 
 s -> C: ({|hash(T2)|}KCS), {|tag,Payload|}KCS
 
