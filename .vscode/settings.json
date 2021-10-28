@@ -1,7 +1,6 @@
 {
     "python.formatting.provider": "black",
     "java.project.sourcePaths": [
-        "02239/authentication",
-        "02239/com.airhacks.rmihello"
+        "02239"
     ]
 }
