@@ -6,8 +6,8 @@
 
 76
 """
-N, M = 5, 4
-D = [[10, 7, 5, 3, 0], [1, 0, 2, 16, 15], [0, 1, 1, 11, 12], [0, 0, 0, 0, 0]]
+D = [[10, 7, 5, 3, 0], [1, 0, 2, 16, 15], [0, 1, 1, 11, 12]]
+N, M = len(D[0]), len(D)
 """
 2 4
 6 4
@@ -114,6 +114,7 @@ def OPT(cri):
             return [[new_total, cas] for cas in counter_case_C]
 
 
+# edges cases:
 if M == 1:
     d = D[0]
     total = 0
@@ -128,6 +129,8 @@ if M == 1:
     print(total)
 elif N <= M:
     print(sum([sum(dd) for dd in D]))
+
+# General case
 else:
     initial_C = list(set(itertools.combinations(range(N), 3)))
     solutions = []
