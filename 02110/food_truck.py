@@ -48,12 +48,12 @@ N, M = len(D[0]), len(D)
 import itertools
 from collections import defaultdict
 
-# N, M = input().split()
-# N = int(N)
-# M = int(M)
-# D = []
-# for _ in range(M):
-# D.append(list(map(int, input().split())))
+N, M = input().split()
+N = int(N)
+M = int(M)
+D = []
+for _ in range(M):
+    D.append(list(map(int, input().split())))
 
 
 def list_duplicates(seq):
@@ -104,27 +104,25 @@ def OPT(cri):
             counter_case_C = [le_case_en_question]
 
             so = list_duplicates(D[cri])
-            # [(1, [1, 2]), (11, [3, 4])]
-            # if new_total == 75:
-            #     print(list(so))
             for s in so:
                 ind = list(s)[1]
+                a = False
                 for i in ind:
                     if i in le_case_en_question:
                         opt_to_replace = le_case_en_question.index(i)
-                for i in ind:
-                    # if new_total == 75:
-                    #     print(i)
-                    if (
-                        i != le_case_en_question[opt_to_replace]
-                        and i not in le_case_en_question
-                    ):
-                        counter_case_C.append(
-                            [
-                                i if x == le_case_en_question[opt_to_replace] else x
-                                for x in le_case_en_question
-                            ]
-                        )
+                        a = True
+                if a:
+                    for i in ind:
+                        if (
+                            i != le_case_en_question[opt_to_replace]
+                            and i not in le_case_en_question
+                        ):
+                            counter_case_C.append(
+                                [
+                                    i if x == le_case_en_question[opt_to_replace] else x
+                                    for x in le_case_en_question
+                                ]
+                            )
             return [[new_total, cas] for cas in counter_case_C]
 
 
@@ -151,8 +149,6 @@ else:
     for initial_c in initial_C:
         C = list(initial_c)
         solution = OPT(M - 1)
-        if solution[0][0] == 75:
-            print(solution)
         solutions.append(solution[0][0])
 
     print(max(solutions))
