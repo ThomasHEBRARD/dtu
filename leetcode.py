@@ -1,3 +1,12 @@
+def divide(dividend, divisor):
+    result = divisor
+    c = 0
+    while result > dividend:
+        result -= dividend
+        c += 1
+    return c
+
+
 def isPalindrome(s):
     s = "".join(e for e in s if e.isalnum()).lower()
     if not s:
