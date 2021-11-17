@@ -25,9 +25,9 @@ def recur(s):
 
 
 class ListNode(object):
-    def __init__(self, x):
-        self.val = x
-        self.next = None
+    def __init__(self, val=0, next=None):
+        self.val = val
+        self.next = next
 
 
 def addTwoNumbers(l1, l2):
@@ -197,4 +197,96 @@ def findMedianSortedArrays(nums1, nums2):
 
 
 # print(findMedianSortedArrays([1, 2], [3, 4]))
-print(findMedianSortedArrays([1, 2], [2]))
+# print(findMedianSortedArrays([1, 2], [2]))
+
+
+class SolutionReverseLinkedList:
+    def __init__(self, linked_list):
+        self.result = ListNode(None)
+        self.linked_list = linked_list
+        self.to_do = []
+
+    def reverseList(self, head):
+        if head.next != None:
+            self.to_do.append(head)
+            self.reverseList(head.next)
+        else:
+            self.result.next = head
+            for h in self.to_do:
+                self.result.next = h
+
+    def __repr__(self):
+        node = self.result
+        l = []
+        while node != None:
+            l.append(node.val)
+            node = node.next
+        return str(l)
+
+
+# linked_list = ListNode(1, ListNode(2, ListNode(3, ListNode(4, ListNode(5, None)))))
+# sol = SolutionReverseLinkedList(linked_list)
+# sol.reverseList(linked_list)
+# print(sol)
+
+def KMPSearch(pat, txt):
+    M = len(pat)
+    N = len(txt)
+  
+    # create lps[] that will hold the longest prefix suffix 
+    # values for pattern
+    lps = [0]*M
+    j = 0 # index for pat[]
+  
+    # Preprocess the pattern (calculate lps[] array)
+    computeLPSArray(pat, M, lps)
+  
+    i = 0 # index for txt[]
+    while i < N:
+        if pat[j] == txt[i]:
+            i += 1
+            j += 1
+  
+        if j == M:
+            print ("Found pattern at index " + str(i-j))
+            j = lps[j-1]
+  
+        # mismatch after j matches
+        elif i < N and pat[j] != txt[i]:
+            # Do not match lps[0..lps[j-1]] characters,
+            # they will match anyway
+            if j != 0:
+                j = lps[j-1]
+            else:
+                i += 1
+  
+def computeLPSArray(pat, M, lps):
+    len = 0 # length of the previous longest prefix suffix
+  
+    lps[0] # lps[0] is always 0
+    i = 1
+  
+    # the loop calculates lps[i] for i = 1 to M-1
+    while i < M:
+        if pat[i]== pat[len]:
+            len += 1
+            lps[i] = len
+            i += 1
+        else:
+            # This is tricky. Consider the example.
+            # AAACAAAA and i = 7. The idea is similar 
+            # to search step.
+            if len != 0:
+                len = lps[len-1]
+  
+                # Also, note that we do not increment i here
+            else:
+                lps[i] = 0
+                i += 1
+  
+txt = "ABABDABACDABABCABAB"
+pat = "ABABCABAB"
+
+txt = [1, 2, 3, 4, 5, -6, 7, 8, 9, 3, 4, 5]
+pat = [3, 4, 5, -6]
+KMPSearch(pat, txt)

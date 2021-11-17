@@ -1,6 +1,4 @@
 {
-    "python.formatting.provider": "black",
-    "java.project.sourcePaths": [
-        "02239"
-    ]
+  "python.formatting.provider": "black",
+  "python.terminal.activateEnvironment": true
 }
