@@ -229,64 +229,113 @@ class SolutionReverseLinkedList:
 # sol.reverseList(linked_list)
 # print(sol)
 
+
 def KMPSearch(pat, txt):
     M = len(pat)
     N = len(txt)
-  
-    # create lps[] that will hold the longest prefix suffix 
+
+    # create lps[] that will hold the longest prefix suffix
     # values for pattern
-    lps = [0]*M
-    j = 0 # index for pat[]
-  
+    lps = [0] * M
+    j = 0  # index for pat[]
+
     # Preprocess the pattern (calculate lps[] array)
     computeLPSArray(pat, M, lps)
-  
-    i = 0 # index for txt[]
+
+    i = 0  # index for txt[]
     while i < N:
         if pat[j] == txt[i]:
             i += 1
             j += 1
-  
+
         if j == M:
-            print ("Found pattern at index " + str(i-j))
-            j = lps[j-1]
-  
+            print("Found pattern at index " + str(i - j))
+            j = lps[j - 1]
+
         # mismatch after j matches
         elif i < N and pat[j] != txt[i]:
             # Do not match lps[0..lps[j-1]] characters,
             # they will match anyway
             if j != 0:
-                j = lps[j-1]
+                j = lps[j - 1]
             else:
                 i += 1
-  
+
+
 def computeLPSArray(pat, M, lps):
-    len = 0 # length of the previous longest prefix suffix
-  
-    lps[0] # lps[0] is always 0
+    len = 0  # length of the previous longest prefix suffix
+
+    lps[0]  # lps[0] is always 0
     i = 1
-  
+
     # the loop calculates lps[i] for i = 1 to M-1
     while i < M:
-        if pat[i]== pat[len]:
+        if pat[i] == pat[len]:
             len += 1
             lps[i] = len
             i += 1
         else:
             # This is tricky. Consider the example.
-            # AAACAAAA and i = 7. The idea is similar 
+            # AAACAAAA and i = 7. The idea is similar
             # to search step.
             if len != 0:
-                len = lps[len-1]
-  
+                len = lps[len - 1]
+
                 # Also, note that we do not increment i here
             else:
                 lps[i] = 0
                 i += 1
-  
-txt = "ABABDABACDABABCABAB"
-pat = "ABABCABAB"
 
-txt = [1, 2, 3, 4, 5, -6, 7, 8, 9, 3, 4, 5]
-pat = [3, 4, 5, -6]
-KMPSearch(pat, txt)
+
+# txt = "ABABDABACDABABCABAB"
+# pat = "ABABCABAB"
+
+# txt = [1, 2, 3, 4, 5, -6, 7, 8, 9, 3, 4, 5]
+# pat = [3, 4, 5, -6]
+# KMPSearch(pat, txt)
+
+
+class Solution:
+    def numIslands(self, grid):
+        if not grid:
+            return 0
+        n, m = len(grid), len(grid[0])
+        nbr_islands = 0
+
+        marked = {}
+
+        def vert_hor(i, j):
+            return [[i - 1, j], [i, j - 1], [i + 1, j], [i, j + 1]]
+
+        def get_children(i, j):
+            children = []
+            for k, l in vert_hor(i, j):
+                if (
+                    k in range(n)
+                    and l in range(m)
+                    and grid[k][l] == "1"
+                    and str(k) + str(l) not in marked
+                ):
+                    children.append([k, l])
+            return children
+
+        def BFS(i, j):
+            if str(i) + str(j) in marked:
+                return
+            marked[str(i) + str(j)] = True
+            children = get_children(i, j)
+            if not children:
+                return
+            for child in children:
+                BFS(child[0], child[1])
+
+        for i in range(n):
+            for j in range(m):
+                if grid[i][j] == "1" and str(i) + str(j) not in marked:
+                    BFS(i, j)
+                    nbr_islands += 1
+        return nbr_islands
+
+
+sol = Solution()
+print(sol.numIslands([["1", "1", "1"], ["0", "1", "0"], ["0", "1", "0"]]))

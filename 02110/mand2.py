@@ -204,22 +204,27 @@ class Solution:
             self.ground
         ) and self.current_air_phase >= len(self.air):
             self.final_pos = self.current_pos
-            return ("result", self.first_pos, self.final_pos - self.first_pos)
+            # return self.first_pos, self.final_pos - self.first_pos
+            self.result.append((self.first_pos, self.final_pos - self.first_pos))
+            self.current_pos = i
 
-        index_found_for_next_ground_phase = KMPSearch(
-            self.ground[self.current_ground_phase],
-            self.track[self.current_pos :],
-        )
-        if len(self.track[self.current_pos :]) == N:
-            self.first_pos = index_found_for_next_ground_phase
+            return
 
-        self.current_pos += index_found_for_next_ground_phase + len(
-            self.ground[self.current_ground_phase]
-        )
-        self.current_ground_phase += 1
-        self.current_air_phase += 1
+        for i in range(len(self.track[self.current_pos :])):
+            index_found_for_next_ground_phase = KMPSearch(
+                self.ground[self.current_ground_phase],
+                self.track[self.current_pos :],
+            )
+            if len(self.track[self.current_pos :]) == N:
+                self.first_pos = index_found_for_next_ground_phase
 
-        return self.sol()
+            self.current_pos += index_found_for_next_ground_phase + len(
+                self.ground[self.current_ground_phase]
+            )
+            self.current_ground_phase += 1
+            self.current_air_phase += 1
+
+            return self.sol()
 
 
 sol = Solution(N, G, TRACK, air_phases, ground_phases)
