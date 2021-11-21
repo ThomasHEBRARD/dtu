@@ -145,17 +145,17 @@ Expected Output:
 # ground_phases = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, -45, -12, -35, -6, 30, 4, -9, -20, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -48, 39, 46, -16, 22, -33, -39, -4, -16, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -28, 10, 2, 49, 27, 18, 22, -21, 6, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 # air_phases = [[1, 252], [1, 252]]
 
-# N, G = map(int, input().split())
-# TRACK = list(map(int, input().split()))
-# nbr_lines = 1 + 2 * G
-# air_phases = []
-# ground_phases = []
+N, G = map(int, input().split())
+TRACK = list(map(int, input().split()))
+nbr_lines = 1 + 2 * G
+air_phases = []
+ground_phases = []
 
-# for i in range(3, nbr_lines + 1):
-#     if i % 2 == 0:
-#         air_phases.append(list(map(int, input().split())))
-#     else:
-#         ground_phases.append(list(map(int, input().split())))
+for i in range(3, nbr_lines + 1):
+    if i % 2 == 0:
+        air_phases.append(list(map(int, input().split())))
+    else:
+        ground_phases.append(list(map(int, input().split())))
 
 
 def computeLPSArray(pat, M, lps):
@@ -172,8 +172,6 @@ def computeLPSArray(pat, M, lps):
         else:
             if len != 0:
                 len = lps[len - 1]
-
-                # Also, note that we do not increment i here
             else:
                 lps[i] = 0
                 i += 1
@@ -211,10 +209,11 @@ class Solution:
         self.N = N
         self.result = [0, 0]
         self.first = -1
+        self.mem = {}
 
     def dfs(self, track, air, ground, count):
-        if len(track) < sum([len(g) for g in ground]) + len(air):
-            return
+        # if len(track) < sum([len(g) for g in ground]) + len(air):
+        #     return
 
         if not ground and not air:
             if (
@@ -225,9 +224,15 @@ class Solution:
                 self.result = [self.first + 1, count]
             return
 
-        all_positions = KMPSearch(ground[0], track)
+        all_positions = []
+        st = "".join(map(str, ground[0])) + "".join(map(str, track))
+        if st in self.mem:
+            all_positions = self.mem[st]
+        else:
+            all_positions = KMPSearch(ground[0], track)
+            self.mem[st] = all_positions
         if all_positions:
-            all_positions = [i for i in all_positions if i in range(1, self.N + 1)]
+            all_positions = [i for i in all_positions if i <= self.N and i >= 1]
 
             for position in all_positions:
                 self.dfs(
