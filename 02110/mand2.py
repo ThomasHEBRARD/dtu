@@ -25,10 +25,10 @@ air_phases = [[1, 12], [1, 12]]
 Expected Output:
 "Impossible"
 """
-N, G = 3, 2
-TRACK = [0, 1, 2]
-ground_phases = [[0], [1]]
-air_phases = [[1, 3]]
+# N, G = 3, 2
+# TRACK = [0, 1, 2]
+# ground_phases = [[0], [1]]
+# air_phases = [[1, 3]]
 """
 30 3
 0 0 1 0 0 1 1 0 1 0 0 1 0 0 0 1 0 1 1 0 0 0 1 1 1 0 1 0 1 1
@@ -41,41 +41,41 @@ air_phases = [[1, 3]]
 Expected Output:
 1 30
 """
-N, G = 30, 3
-TRACK = [
-    0,
-    0,
-    1,
-    0,
-    0,
-    1,
-    1,
-    0,
-    1,
-    0,
-    0,
-    1,
-    0,
-    0,
-    0,
-    1,
-    0,
-    1,
-    1,
-    0,
-    0,
-    0,
-    1,
-    1,
-    1,
-    0,
-    1,
-    0,
-    1,
-    1,
-]
-ground_phases = [[0], [1], [1, 0, 1, 1]]
-air_phases = [[1, 30], [1, 30]]
+# N, G = 30, 3
+# TRACK = [
+#     0,
+#     0,
+#     1,
+#     0,
+#     0,
+#     1,
+#     1,
+#     0,
+#     1,
+#     0,
+#     0,
+#     1,
+#     0,
+#     0,
+#     0,
+#     1,
+#     0,
+#     1,
+#     1,
+#     0,
+#     0,
+#     0,
+#     1,
+#     1,
+#     1,
+#     0,
+#     1,
+#     0,
+#     1,
+#     1,
+# ]
+# ground_phases = [[0], [1], [1, 0, 1, 1]]
+# air_phases = [[1, 30], [1, 30]]
 """
 32 4
 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
@@ -88,8 +88,45 @@ air_phases = [[1, 30], [1, 30]]
 0 0 0
 
 Expected Output:
-1 31
+1 32
 """
+N, G = 32, 4
+TRACK = [
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+    0,
+]
+ground_phases = [[0, 0, 0, 0, 0], [0], [0, 0, 0, 0, 0, 0], [0, 0, 0]]
+air_phases = [[1, 32], [1, 32], [1, 32]]
 
 """
 252 3
@@ -103,6 +140,10 @@ Expected Output:
 Expected Output:
 21 211
 """
+# N, G = 252, 3
+# TRACK = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, -45, -12, -35, -6, 30, 4, -9, -20, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -48, 39, 46, -16, 22, -33, -39, -4, -16, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -28, 10, 2, 49, 27, 18, 22, -21, 6, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+# ground_phases = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, -45, -12, -35, -6, 30, 4, -9, -20, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -48, 39, 46, -16, 22, -33, -39, -4, -16, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -28, 10, 2, 49, 27, 18, 22, -21, 6, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
+# air_phases = [[1, 252], [1, 252]]
 
 # N, G = map(int, input().split())
 # TRACK = list(map(int, input().split()))
@@ -118,21 +159,17 @@ Expected Output:
 
 
 def computeLPSArray(pat, M, lps):
-    len = 0  # length of the previous longest prefix suffix
+    len = 0
 
-    lps[0]  # lps[0] is always 0
+    lps[0]
     i = 1
 
-    # the loop calculates lps[i] for i = 1 to M-1
     while i < M:
         if pat[i] == pat[len]:
             len += 1
             lps[i] = len
             i += 1
         else:
-            # This is tricky. Consider the example.
-            # AAACAAAA and i = 7. The idea is similar
-            # to search step.
             if len != 0:
                 len = lps[len - 1]
 
@@ -145,87 +182,74 @@ def computeLPSArray(pat, M, lps):
 def KMPSearch(pat, txt):
     M = len(pat)
     N = len(txt)
-
-    # create lps[] that will hold the longest prefix suffix
-    # values for pattern
+    result = []
     lps = [0] * M
-    j = 0  # index for pat[]
+    j = 0
 
-    # Preprocess the pattern (calculate lps[] array)
     computeLPSArray(pat, M, lps)
 
-    i = 0  # index for txt[]
+    i = 0
     while i < N:
         if pat[j] == txt[i]:
             i += 1
             j += 1
 
         if j == M:
-            return i - j
+            result.append(i - j)
             j = lps[j - 1]
 
-        # mismatch after j matches
         elif i < N and pat[j] != txt[i]:
-            # Do not match lps[0..lps[j-1]] characters,
-            # they will match anyway
             if j != 0:
                 j = lps[j - 1]
             else:
                 i += 1
+    return result
 
 
 class Solution:
-    def __init__(self, N, G, TRACK, air_phases, ground_phases):
+    def __init__(self, N):
         self.N = N
-        self.G = G
-        self.track = TRACK
-        self.air = air_phases
-        self.ground = ground_phases
-        self.current_ground_phase = 0
-        self.current_pos = 0
-        self.current_air_phase = 0
-        self.first_pos = 0
-        self.final_pos = 0
-        self.sum_ground_phases = sum([len(g) for g in ground_phases])
-        self.result = []
+        self.result = [0, 0]
+        self.first = -1
 
-    def match(self, pos, m):
-        to_match_with = self.track[pos : len(m) + 1]
-        if m == to_match_with:
-            return True
-        return False
-
-    def sol(self):
-        if len(self.track[self.current_pos :]) < sum(
-            [len(g) for g in self.ground[self.current_ground_phase :]]
-        ):
-            return "Impossible"
-        if self.current_ground_phase >= len(
-            self.ground
-        ) and self.current_air_phase >= len(self.air):
-            self.final_pos = self.current_pos
-            # return self.first_pos, self.final_pos - self.first_pos
-            self.result.append((self.first_pos, self.final_pos - self.first_pos))
-            self.current_pos = i
-
+    def dfs(self, track, air, ground, count):
+        if len(track) < sum([len(g) for g in ground]) + len(air):
             return
 
-        for i in range(len(self.track[self.current_pos :])):
-            index_found_for_next_ground_phase = KMPSearch(
-                self.ground[self.current_ground_phase],
-                self.track[self.current_pos :],
-            )
-            if len(self.track[self.current_pos :]) == N:
-                self.first_pos = index_found_for_next_ground_phase
+        if not ground and not air:
+            if (
+                count > self.result[1]
+                or count == self.result
+                and self.first + 1 < self.result[0]
+            ):
+                self.result = [self.first + 1, count]
+            return
 
-            self.current_pos += index_found_for_next_ground_phase + len(
-                self.ground[self.current_ground_phase]
-            )
-            self.current_ground_phase += 1
-            self.current_air_phase += 1
+        all_positions = KMPSearch(ground[0], track)
+        if all_positions:
+            all_positions = [i for i in all_positions if i in range(1, self.N + 1)]
 
-            return self.sol()
+            for position in all_positions:
+                self.dfs(
+                    track[position + len(ground[0]) :],
+                    air[1:],
+                    ground[1:],
+                    count + position + len(ground[0]),
+                )
+
+    def sol(self, track, air, ground, count):
+        if self.first == -1:
+            all_positions = KMPSearch(ground[0], track)
+            for position in all_positions:
+                self.first = position
+                count = len(ground[0])
+                self.dfs(track[position + len(ground[0]) :], air, ground[1:], count)
+
+        if self.result != [0, 0]:
+            return str(self.result[0]) + " " + str(self.result[1])
+        else:
+            return "Impossible"
 
 
-sol = Solution(N, G, TRACK, air_phases, ground_phases)
-print("SOLUTION", sol.sol())
+sol = Solution(N)
+print(sol.sol(TRACK, air_phases, ground_phases, 0))
