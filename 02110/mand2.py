@@ -228,32 +228,29 @@ class Solution:
         self.first = -1
 
     def dfs(self, track, air, ground, count):
-        if not ground and not air:
+        if not ground:
             if count > self.result[1] or (
                 count == self.result and self.first + 1 < self.result[0]
             ):
                 self.result = [self.first + 1, count]
             return
 
-        all_positions = []
+        position = 1
 
         if len(ground) == 1:
-            all_positions = KMPSearch(ground[0], track, self.N, False)
-            all_positions = all_positions[-1:]
+            position = KMPSearch(ground[0], track, self.N, False)[-1]
         else:
-            all_positions = KMPSearch(ground[0], track, self.N, len(ground) != 1)
+            position = KMPSearch(ground[0], track, self.N, True)[0]
 
-        for position in all_positions:
-            self.dfs(
-                track[position + len(ground[0]) :],
-                air[1:],
-                ground[1:],
-                count + position + len(ground[0]),
-            )
+        self.dfs(
+            track[position + len(ground[0]) :],
+            air[1:],
+            ground[1:],
+            count + position + len(ground[0]),
+        )
 
     def sol(self, track, air, ground, count):
-        all_positions = KMPSearch(ground[0], track, self.N, True)
-        self.first = all_positions[0]
+        self.first = KMPSearch(ground[0], track, self.N, True)[0]
         count = len(ground[0])
         self.dfs(track[self.first + count :], air, ground[1:], count)
 
