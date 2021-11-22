@@ -25,10 +25,10 @@ air_phases = [[1, 12], [1, 12]]
 Expected Output:
 "Impossible"
 """
-# N, G = 3, 2
-# TRACK = [0, 1, 2]
-# ground_phases = [[0], [1]]
-# air_phases = [[1, 3]]
+N, G = 3, 2
+TRACK = [0, 1, 2]
+ground_phases = [[0], [1]]
+air_phases = [[1, 3]]
 """
 30 3
 0 0 1 0 0 1 1 0 1 0 0 1 0 0 0 1 0 1 1 0 0 0 1 1 1 0 1 0 1 1
@@ -157,6 +157,19 @@ Expected Output:
 #     else:
 #         ground_phases.append(list(map(int, input().split())))
 
+with open("Samples07.in") as f:
+    N, G = map(int, f.readline().split())
+    TRACK = list(map(int, f.readline().split()))
+    nbr_lines = 1 + 2 * G
+    air_phases = []
+    ground_phases = []
+
+    for i in range(3, nbr_lines + 1):
+        if i % 2 == 0:
+            air_phases.append(list(map(int, f.readline().split())))
+        else:
+            ground_phases.append(list(map(int, f.readline().split())))
+
 
 def computeLPSArray(pat, M, lps):
     len = 0
@@ -183,7 +196,6 @@ def KMPSearch(pat, txt, NN, need_first=False):
     result = []
     lps = [0] * M
     j = 0
-    R = range(1, NN + 1)
 
     computeLPSArray(pat, M, lps)
 
@@ -197,7 +209,7 @@ def KMPSearch(pat, txt, NN, need_first=False):
         if j == M:
             if need_first and i - j >= 0:
                 return [i - j]
-            elif i - j in R:
+            elif 1 <= i - j <= NN:
                 result.append(i - j)
             j = lps[j - 1]
 
@@ -217,15 +229,19 @@ class Solution:
 
     def dfs(self, track, air, ground, count):
         if not ground and not air:
-            if (
-                count > self.result[1]
-                or count == self.result
-                and self.first + 1 < self.result[0]
+            if count > self.result[1] or (
+                count == self.result and self.first + 1 < self.result[0]
             ):
                 self.result = [self.first + 1, count]
             return
 
-        all_positions = KMPSearch(ground[0], track, self.N, len(ground) != 1)
+        all_positions = []
+
+        if len(ground) == 1:
+            all_positions = KMPSearch(ground[0], track, self.N, False)
+            all_positions = all_positions[-1:]
+        else:
+            all_positions = KMPSearch(ground[0], track, self.N, len(ground) != 1)
 
         for position in all_positions:
             self.dfs(
