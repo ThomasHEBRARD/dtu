@@ -158,18 +158,18 @@ Expected Output:
 #         ground_phases.append(list(map(int, input().split())))
 
 
-# with open("Samples07.in") as f:
-#     N, G = map(int, f.readline().split())
-#     TRACK = list(map(int, f.readline().split()))
-#     nbr_lines = 1 + 2 * G
-#     air_phases = []
-#     ground_phases = []
+with open("Samples07.in") as f:
+    N, G = map(int, f.readline().split())
+    TRACK = list(map(int, f.readline().split()))
+    nbr_lines = 1 + 2 * G
+    air_phases = []
+    ground_phases = []
 
-#     for i in range(3, nbr_lines + 1):
-#         if i % 2 == 0:
-#             air_phases.append(list(map(int, f.readline().split())))
-#         else:
-#             ground_phases.append(list(map(int, f.readline().split())))
+    for i in range(3, nbr_lines + 1):
+        if i % 2 == 0:
+            air_phases.append(list(map(int, f.readline().split())))
+        else:
+            ground_phases.append(list(map(int, f.readline().split())))
 
 
 def PIArray(pat, M, array):
@@ -232,7 +232,7 @@ class Solution:
         self.result = [0, 0]
         self.first = -1
 
-    def dfs(self, track, air, ground, count):
+    def rec(self, track, air, ground, count):
         if not ground:
             self.result = [self.first + 1, count]
             return
@@ -244,7 +244,7 @@ class Solution:
         else:
             return
 
-        self.dfs(
+        self.rec(
             track[position + len(ground[0]) :],
             air[1:],
             ground[1:],
@@ -254,7 +254,7 @@ class Solution:
     def sol(self, track, air, ground, count):
         self.first = KMPSearch(ground[0], track, self.N)[0]
         count = len(ground[0])
-        self.dfs(track[self.first + count :], air, ground[1:], count)
+        self.rec(track[self.first + count :], air, ground[1:], count)
 
         if self.result != [0, 0]:
             return str(self.result[0]) + " " + str(self.result[1])
