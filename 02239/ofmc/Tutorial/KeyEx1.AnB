@@ -2,22 +2,20 @@ Protocol: KeyEx
 # Naive first version without encryption
 
 Types:
-  Agent A,B,s;
+  Agent A,B;
   Numeric NA,NB;
   Symmetric_key KAB;
-  Function sk,h
+  Function sk
 
 Knowledge:
-  A: A,B,s,sk(A,s),h;
-  B: A,B,s,sk(B,s),h;
-  s: A,B,s,sk(A,s),sk(B,s),h
+  A: A,B,sk(A,s);
+  B: A,B,sk(B,s);
 
 Actions:
 
-A->s: A,B,h(NA)
-# s creates key KAB
-s->A: {|h(NA),h(NB),A,B,KAB|}sk(A,s),{|h(NA),h(NB),A,B,KAB|}sk(B,s)
-A->B: A,{|h(NA),h(NB),A,B,KAB|}sk(B,s)
+A->B: A,B,NA
+#B->A: A,{|h(NA),h(NB),A,B,KAB|}sk(B,s)
+B->A: A,B,NB
 
 Goals:
 
