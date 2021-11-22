@@ -90,43 +90,43 @@ Expected Output:
 Expected Output:
 1 32
 """
-N, G = 32, 4
-TRACK = [
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-    0,
-]
-ground_phases = [[0, 0, 0, 0, 0], [0], [0, 0, 0, 0, 0, 0], [0, 0, 0]]
-air_phases = [[1, 32], [1, 32], [1, 32]]
+# N, G = 32, 4
+# TRACK = [
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+#     0,
+# ]
+# ground_phases = [[0, 0, 0, 0, 0], [0], [0, 0, 0, 0, 0, 0], [0, 0, 0]]
+# air_phases = [[1, 32], [1, 32], [1, 32]]
 
 """
 252 3
@@ -157,68 +157,73 @@ Expected Output:
 #     else:
 #         ground_phases.append(list(map(int, input().split())))
 
-with open("Samples07.in") as f:
-    N, G = map(int, f.readline().split())
-    TRACK = list(map(int, f.readline().split()))
-    nbr_lines = 1 + 2 * G
-    air_phases = []
-    ground_phases = []
 
-    for i in range(3, nbr_lines + 1):
-        if i % 2 == 0:
-            air_phases.append(list(map(int, f.readline().split())))
-        else:
-            ground_phases.append(list(map(int, f.readline().split())))
+# with open("Samples07.in") as f:
+#     N, G = map(int, f.readline().split())
+#     TRACK = list(map(int, f.readline().split()))
+#     nbr_lines = 1 + 2 * G
+#     air_phases = []
+#     ground_phases = []
+
+#     for i in range(3, nbr_lines + 1):
+#         if i % 2 == 0:
+#             air_phases.append(list(map(int, f.readline().split())))
+#         else:
+#             ground_phases.append(list(map(int, f.readline().split())))
 
 
-def computeLPSArray(pat, M, lps):
-    len = 0
+def PIArray(pat, M, array):
+    idx = 0
 
-    lps[0]
+    array[0]
     i = 1
 
     while i < M:
-        if pat[i] == pat[len]:
-            len += 1
-            lps[i] = len
+        if pat[i] == pat[idx]:
+            idx += 1
+            array[i] = idx
             i += 1
         else:
-            if len != 0:
-                len = lps[len - 1]
+            if idx != 0:
+                idx = array[idx - 1]
             else:
-                lps[i] = 0
+                array[i] = 0
                 i += 1
 
 
-def KMPSearch(pat, txt, NN, need_first=False):
-    M = len(pat)
-    N = len(txt)
-    result = []
-    lps = [0] * M
+def KMPSearch(pattern, text, NN, need_first=True):
+    M = len(pattern)
+    N = len(text)
+    array = [0] * M
     j = 0
 
-    computeLPSArray(pat, M, lps)
+    if not need_first:
+        pattern = pattern[::-1]
+        text = text[::-1][:-1]
+        N -= 1
+
+    PIArray(pattern, M, array)
 
     i = 0
     while i < N:
 
-        if pat[j] == txt[i]:
+        if pattern[j] == text[i]:
             i += 1
             j += 1
 
         if j == M:
-            if need_first and i - j >= 0:
-                return [i - j]
-            elif 1 <= i - j <= NN:
-                result.append(i - j)
-            j = lps[j - 1]
+            r = len(text) - (i - j) - len(pattern) + 1
+            if not need_first and 1 <= r <= NN:
+                return [r]
+            return [i - j]
+            j = array[j - 1]
 
-        elif i < N and pat[j] != txt[i]:
+        elif i < N and pattern[j] != text[i]:
             if j != 0:
-                j = lps[j - 1]
+                j = array[j - 1]
             else:
                 i += 1
-    return result
+    return
 
 
 class Solution:
@@ -229,18 +234,15 @@ class Solution:
 
     def dfs(self, track, air, ground, count):
         if not ground:
-            if count > self.result[1] or (
-                count == self.result and self.first + 1 < self.result[0]
-            ):
-                self.result = [self.first + 1, count]
+            self.result = [self.first + 1, count]
             return
 
-        position = 1
+        position = KMPSearch(ground[0], track, self.N, len(ground) != 1)
 
-        if len(ground) == 1:
-            position = KMPSearch(ground[0], track, self.N, False)[-1]
+        if position:
+            position = position[0]
         else:
-            position = KMPSearch(ground[0], track, self.N, True)[0]
+            return
 
         self.dfs(
             track[position + len(ground[0]) :],
@@ -250,7 +252,7 @@ class Solution:
         )
 
     def sol(self, track, air, ground, count):
-        self.first = KMPSearch(ground[0], track, self.N, True)[0]
+        self.first = KMPSearch(ground[0], track, self.N)[0]
         count = len(ground[0])
         self.dfs(track[self.first + count :], air, ground[1:], count)
 
