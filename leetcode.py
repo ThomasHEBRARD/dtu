@@ -62,7 +62,7 @@ l2 = ListNode(5)
 l2.next = ListNode(6)
 l2.next.next = ListNode(4)
 
-# print(addTwoNumbers(l1,l2))
+print(addTwoNumbers(l1,l2))
 
 
 def lengthOfLongestSubstring(s):
@@ -343,13 +343,13 @@ class Solution:
 
 def longestPrefix(s):
     m = ""
-    for i in range(len(s)-1):
-        if s[:i+1] == s[-(i+1):]:
-            m = s[:i+1]
+    for i in range(len(s) - 1):
+        if s[: i + 1] == s[-(i + 1) :]:
+            m = s[: i + 1]
     return m
 
 
-print(longestPrefix("ababab"))
+# print(longestPrefix("ababab"))
 """
 12 3
 -3 -1 2 -5 3 0 2 -3 2 3 -2 -3
@@ -362,10 +362,10 @@ print(longestPrefix("ababab"))
 Expected Output
 2 11
 """
-N, G = 12, 3
-TRACK = [-3, -1, 2, -5, 3, 0, 2, -3, 2, 3, -2, -3]
-ground_phases = [[-1, 2, -5], [2], [-2, -3]]
-air_phases = [[1, 12], [1, 12]]
+# N, G = 12, 3
+# TRACK = [-3, -1, 2, -5, 3, 0, 2, -3, 2, 3, -2, -3]
+# ground_phases = [[-1, 2, -5], [2], [-2, -3]]
+# air_phases = [[1, 12], [1, 12]]
 
 """
 3 2
@@ -497,17 +497,17 @@ Expected Output:
 # ground_phases = [[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 12, -45, -12, -35, -6, 30, 4, -9, -20, 41, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -48, 39, 46, -16, 22, -33, -39, -4, -16, 28, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -28, 10, 2, 49, 27, 18, 22, -21, 6, 49, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]]
 # air_phases = [[1, 252], [1, 252]]
 
-N, G = map(int, input().split())
-TRACK = list(map(int, input().split()))
-nbr_lines = 1 + 2 * G
-air_phases = []
-ground_phases = []
+# N, G = map(int, input().split())
+# TRACK = list(map(int, input().split()))
+# nbr_lines = 1 + 2 * G
+# air_phases = []
+# ground_phases = []
 
-for i in range(3, nbr_lines + 1):
-    if i % 2 == 0:
-        air_phases.append(list(map(int, input().split())))
-    else:
-        ground_phases.append(list(map(int, input().split())))
+# for i in range(3, nbr_lines + 1):
+#     if i % 2 == 0:
+#         air_phases.append(list(map(int, input().split())))
+#     else:
+#         ground_phases.append(list(map(int, input().split())))
 
 # with open("Samples07.in") as f:
 #     N, G = map(int, f.readline().split())
@@ -617,5 +617,110 @@ class Solution:
             return "Impossible"
 
 
-sol = Solution(N)
-print(sol.sol(TRACK, air_phases, ground_phases, 0))
+# sol = Solution(N)
+# print(sol.sol(TRACK, air_phases, ground_phases, 0))
+
+
+class WordDictionary:
+    def __init__(self):
+        self.trie = {}
+
+    def addWord(self, word):
+        trie = self.trie
+        for c in word:
+            if c not in trie:
+                trie[c] = {}
+            trie = trie[c]
+        trie["$"] = True
+        print(self.trie)
+
+    def search(self, word):
+        node = self.trie
+        for i in range(len(word)):
+            if word[i] not in node:
+                if word[i] == ".":
+                    for x in node:
+                        if x != "$" and search_in_node(word[i + 1 :], node[x]):
+                            return True
+                return False
+            else:
+                node = node[word[i]]
+            return "$" in node
+            # if word[i] == '$':
+            #     return False
+            # if word[i] not in node and word[i] != ".":
+            #     return False
+            # elif word[i] == ".":
+            #     for ch in node:
+            #         return self.search(word[:i] + ch + word[i + 1 :])
+            # elif word[i] in node:
+            #     node = node[word[i]]
+        return True
+
+
+class SolutionIP:
+    def restoreIpAddresses(self, s):
+        def restore(string, dots, result):
+            if not string:
+                return
+            if string[0] == "O":
+                return
+            for i in range(min(3, len(string))):
+                if int(string[: i + 1]) <= 255:
+                    if sol := restore(string[:i], dots - 1, result):
+                        result.append(sol)
+            return result
+
+        return ".".join(restore(s, 3, []))
+
+
+# ip = SolutionIP()
+# print(ip.restoreIpAddresses("101023"))
+
+
+class Solution:
+    def __init__(self):
+        self.sol = 0
+        self.n, self.m = 0, 0
+        self.c = 0
+
+    def uniquePathsIII(self, grid):
+        self.n, self.m = len(grid), len(grid[0])
+        self.c = self.n * self.m - 2
+
+        def neigh(i, j):
+            res = []
+            poss = [[i - 1, j], [i + 1, j], [i, j + 1], [i, j - 1]]
+            for pos in poss:
+                if (
+                    0 <= pos[0] < self.n
+                    and 0 <= pos[1] < self.m
+                    and grid[pos[0]][pos[1]] not in [2, 3]
+                ):
+                    res.append(pos)
+            return res
+
+        def backtrack(i, j, curr_c=0):
+            curr = grid[i][j]
+
+            if curr_c == self.c and curr == 2:
+                self.sol += 1
+                return
+
+            grid[i][j] = 3
+
+            for pos in neigh(i, j):
+                backtrack(pos[0], pos[1], curr_c + 1)
+
+            grid[i][j] = 0
+
+        for k in range(self.n):
+            for l in range(self.m):
+                if grid[k][l] == -1:
+                    self.c -= 1
+
+        for o in range(self.n):
+            for p in range(self.m):
+                backtrack(o, p)
+
+        return self.sol

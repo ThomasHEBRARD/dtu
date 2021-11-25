@@ -25,10 +25,10 @@ air_phases = [[1, 12], [1, 12]]
 Expected Output:
 "Impossible"
 """
-N, G = 3, 2
-TRACK = [0, 1, 2]
-ground_phases = [[0], [1]]
-air_phases = [[1, 3]]
+# N, G = 3, 2
+# TRACK = [0, 1, 2]
+# ground_phases = [[0], [1]]
+# air_phases = [[1, 3]]
 """
 30 3
 0 0 1 0 0 1 1 0 1 0 0 1 0 0 0 1 0 1 1 0 0 0 1 1 1 0 1 0 1 1
@@ -158,18 +158,18 @@ Expected Output:
 #         ground_phases.append(list(map(int, input().split())))
 
 
-with open("Samples07.in") as f:
-    N, G = map(int, f.readline().split())
-    TRACK = list(map(int, f.readline().split()))
-    nbr_lines = 1 + 2 * G
-    air_phases = []
-    ground_phases = []
+# with open("Samples07.in") as f:
+#     N, G = map(int, f.readline().split())
+#     TRACK = list(map(int, f.readline().split()))
+#     nbr_lines = 1 + 2 * G
+#     air_phases = []
+#     ground_phases = []
 
-    for i in range(3, nbr_lines + 1):
-        if i % 2 == 0:
-            air_phases.append(list(map(int, f.readline().split())))
-        else:
-            ground_phases.append(list(map(int, f.readline().split())))
+#     for i in range(3, nbr_lines + 1):
+#         if i % 2 == 0:
+#             air_phases.append(list(map(int, f.readline().split())))
+#         else:
+#             ground_phases.append(list(map(int, f.readline().split())))
 
 
 def PIArray(pat, M, array):
@@ -236,14 +236,14 @@ class Solution:
         if not ground:
             self.result = [self.first + 1, count]
             return
+        print(ground[0])
 
         position = KMPSearch(ground[0], track, self.N, len(ground) != 1)
 
         if position:
             position = position[0]
         else:
-            return
-
+            return 
         self.rec(
             track[position + len(ground[0]) :],
             air[1:],
@@ -261,6 +261,7 @@ class Solution:
         else:
             return "Impossible"
 
+# KMP : time O(n + m)
 
 sol = Solution(N)
 print(sol.sol(TRACK, air_phases, ground_phases, 0))
