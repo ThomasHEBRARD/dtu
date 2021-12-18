@@ -62,7 +62,7 @@ l2 = ListNode(5)
 l2.next = ListNode(6)
 l2.next.next = ListNode(4)
 
-print(addTwoNumbers(l1,l2))
+# print(addTwoNumbers(l1, l2))
 
 
 def lengthOfLongestSubstring(s):
@@ -724,3 +724,155 @@ class Solution:
                 backtrack(o, p)
 
         return self.sol
+
+
+#####  HackerRank
+
+# /*
+# Enter your query here.
+# */
+
+# SELECT DEPARTMENT.NAME, COUNT(EMPLOYEE.ID) AS C FROM EMPLOYEE
+# JOIN DEPARTMENT ON DEPARTMENT.ID = EMPLOYEE.DEPT_ID
+# GROUP BY DEPARTMENT.NAME
+# ORDER BY C desc, DEPARTMENT.NAME
+
+
+def countDiceSequences(N, rollMax):
+    pass
+
+
+print(countDiceSequences(3, [2, 3, 2, 10, 2, 5]))
+print(countDiceSequences(3, [1, 1, 1, 1, 1, 1]))
+
+
+def dieSimulator(self, n, rollMax):
+    MAP = {}
+
+    def dfs(chosen_roll, consecutive_roll):
+        key = (chosen_roll, consecutive)
+        if key not in MAP:
+            MAP[key] = 0
+
+            for curr_roll in range(6):
+                if curr_roll == chosen_roll and consecutive_roll < rollMax[curr_roll]:
+                    MAP[key] += dfs(curr_roll, consecutive_roll + 1)
+                else:
+                    MAP[key] += df()
+
+    return dfs(0, 0)
+
+
+mod=1000000007
+
+def solve(n, rollMax, prev, consecLen):
+    if n==0:
+        return 1
+    ans=0
+    for i in range(1, 7):
+        if prev==i:
+            consecLen+=1
+            if rollMax[i-1]-consecLen>0:
+                ans+=solve(n-1,rollMax[:], i, consecLen)
+            else:
+                continue
+            consecLen-=1
+        else:
+            if rollMax[i-1]>0:
+                ans+=solve(n-1, rollMax[:], i, 0)
+            
+    return ans%mod
+print(solve(3, tuple([2, 3, 2, 10, 2, 5]), -1,0))
+
+def countDiceSequences(N, rollMax):
+    # The idea here is to count the number of combination that we have to remove
+    # To do that, we consider one roll, and consider every other possible rolls 
+    # while respecting the rules. It is like building a tree, and for each node, we look at
+    # the ancestors if the number of consecutive rolls is respected, and then we create other
+    # combination etc. We have to go at the end of each sequence, therefore we can use 
+    # a Depth First Search algorithm. DFS is 
+    
+    # To optimize the process, we use memoization.
+
+    def dfs(N, rollMax, previous, consecutive_roll):
+        # base case:
+        if N == 0:
+            return 1
+            
+        result = 0
+    
+        for roll in range(1, 7):
+            # check consecutive
+            if previous == roll:
+                consecutive_roll += 1
+                
+                if consecutive_roll < rollMax[roll-1]: # 1-based
+                    result += dfs(N - 1, rollMax, roll, consecutive_roll)
+                else:
+                    continue
+                # If the consecutive roll 
+                consecutive_roll -= 1
+            else:
+                if rollMax[roll-1] > 0:
+                    result += dfs(N-1, rollMax, roll, 0)
+        return result % 1000000007
+    return dfs(N, rollmax, -1, 0)
+
+countDiceSequences(3, [2, 3, 2, 10, 2, 5])
+
+
+# def dieSimulator(n, rollMax):
+#     memo = {}
+#     def dfs(rolls, taken, consecutive):
+#         if (rolls, taken, consecutive) not in memo:
+#             memo[(rolls, taken, consecutive)] = 0
+#             for i in range(0, 6):
+#                 if i == taken:
+#                     if consecutive < rollMax[i]:
+#                         memo[(rolls, taken, consecutive)] = (
+#                             memo[(rolls, taken, consecutive)]
+#                             + dfs(rolls + 1, i, consecutive + 1)
+#                         ) % 1000000007
+#                     else:
+#                         continue
+#                 else:
+#                     memo[(rolls, taken, consecutive)] = (
+#                         memo[(rolls, taken, consecutive)] + dfs(rolls + 1, i, 1)
+#                     ) % 1000000007
+#         return memo[(rolls, taken, consecutive)]
+
+#     return dfs(0, -1, 0)
+
+
+# print(dieSimulator(3, [2, 3, 2, 10, 2, 5]))
+
+
+def getRelevantFoodOutlets(city, maxCost):
+    import requests
+    import pprint
+
+    page = 0
+
+    url = "https://jsonmock.hackerrank.com/api/food_outlets?city={}&page={}".format(
+        city, 0
+    )
+    res = requests.get(url=url)
+    maxPage = res.json()["total_pages"]
+    total = res.json()["total"]
+    result = []
+    c = 0
+    pprint.pprint(res.json())
+    for page in range(maxPage):
+        url = "https://jsonmock.hackerrank.com/api/food_outlets?city={}&page={}".format(
+            city, page
+        )
+        res = requests.get(url=url)
+        DATA = res.json()["data"]
+        for data in DATA:
+            c += 1
+            if data["estimated_cost"] <= maxCost:
+                result.append(data["name"])
+    return result, c, total
+
+
+print(getRelevantFoodOutlets("Denver", 50))

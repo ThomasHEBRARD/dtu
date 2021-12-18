@@ -37,22 +37,23 @@ import random
 
 
 def solution2(N):
-    def rec(arr, n, x):
-        if n == 2:
-            y = random.randrange(1, N)
-            z = x - y
-            return [y, z]
-        else:
-            arr = arr + rec(arr, n - 1, random.randrange(1, n))
+    i = 1
+    ans = []
+    s = 0
+    while n > 1:
+        ans.append(i)
+        s += i
+        i += 1
+        n -= 1
+    ans.append(-s)
+    return ans
 
-    return rec([], N, 0)
 
-
-# print(solution2(4))
+import math
 
 
 def solution3(A, B, C):
-    if A//3 > B + C:
+    if divmod(A, 2)[0] - 1 + divmod(A, 2)[1] > B + C:
         return ""
     res = ""
     MAP = {"a": A, "b": B, "c": C}
@@ -73,11 +74,9 @@ def solution3(A, B, C):
                 res += k
                 MAP[k] -= 1
                 break
-        else:
+        else:   
             return res
     return res
 
 
-print(solution3(8, 1, 0))
-print(solution3(1, 3, 1))
-print(solution3(0, 1, 8))
+print(solution3(9, 2, 1))
