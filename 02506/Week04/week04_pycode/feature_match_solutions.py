@@ -3,6 +3,7 @@ Anders Bjorholm Dahl, abda@dtu.dk
 
 Script to match images based on SIFT features.
 """
+# feature_match_solutions
 
 import numpy as np
 import cv2

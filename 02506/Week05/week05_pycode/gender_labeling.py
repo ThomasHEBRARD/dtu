@@ -2,6 +2,7 @@
 
 import maxflow
 import numpy as np
+# gender_labeling
 
 #%%
 d = np.array([179, 174, 182, 162, 175, 165]) # heights (data)

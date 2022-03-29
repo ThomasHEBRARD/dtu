@@ -5,6 +5,7 @@ Anders Bjorholm Dahl
 abda@dtu.dk
 2020
 """
+# blob
 
 import numpy as np
 import skimage.feature

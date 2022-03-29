@@ -1,5 +1,5 @@
 import numpy as np
-            
+# quiz_solutions    
 def prior_energy(S, beta):
     return beta * ((np.diff(S, axis=0)!=0).sum() + (np.diff(S, axis=1)!=0).sum())   
     

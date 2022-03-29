@@ -10,7 +10,7 @@ import numpy as np
 import scipy.ndimage
 import skimage.io
 import matplotlib.pyplot as plt
-
+#image_convolution_exercise
 #%% Read in image data
 data_path = '../../../../Data/week1/'
 im_name = 'fibres_xcth.png'

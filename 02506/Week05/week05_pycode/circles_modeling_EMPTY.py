@@ -3,7 +3,7 @@ import numpy as np
 import scipy.ndimage
 import matplotlib.pyplot as plt
 
-
+# circles_modeling_EMPTY
 def segmentation_energy(S, I, mu, beta):
     # TODO -- add your code here
     

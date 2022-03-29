@@ -4,6 +4,7 @@ Helping functions for extracting features from images
 Vedrana Andersen Dahl (vand@dtu.dk) 
 Anders Bjorholm Dahl (abda@dtu.dk)
 """
+# local_features
 
 import numpy as np
 import scipy.ndimage

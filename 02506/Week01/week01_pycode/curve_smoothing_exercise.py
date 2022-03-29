@@ -66,7 +66,7 @@ ax.legend((f'explicit 1 iteration lambda {lambda_small}',f'explicit 1 iteration 
 ax.axis('equal')
 #%%
 # Implicit smoothing with both alpha and beta
-
+# curve_smoothing_exercise
 alpha = 10;
 beta = 10;
 

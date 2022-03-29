@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import simple_snake as sis
 import skimage.draw
-
+# quiz_solution
 a = (40+10*1)**2*np.pi
 print(a)
 

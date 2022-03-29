@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import skimage.io 
 import slgbuilder
-
+# on_surface_cost_example
 #%% input
 I = skimage.io.imread('../../../../Data/week7/layers_A.png').astype(np.int32)
 

@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
+# scale_space_quiz_solution
 """
 Anders Bjorholm Dahl
 abda@dtu.dk

@@ -1,6 +1,7 @@
 """
 Helping functions for snakes.
 """
+# snake_functions
 
 import numpy as np
 import scipy.interpolate

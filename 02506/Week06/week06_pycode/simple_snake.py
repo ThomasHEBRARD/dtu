@@ -3,7 +3,7 @@ import scipy.interpolate
 import scipy.linalg
 import skimage.draw
 
-
+# simple_snake
 def make_circular_snake(N, center, radius):
     """ Initialize circular snake as a 2-by-N array."""
     center = center.reshape([2,1])

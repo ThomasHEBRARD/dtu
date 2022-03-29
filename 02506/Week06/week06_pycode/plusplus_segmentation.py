@@ -2,7 +2,7 @@ import skimage.io
 import numpy as np
 import matplotlib.pyplot as plt
 import simple_snake as sis
-
+# plusplus_segmentation
 filename = '../../../../Data/week6/plusplus.png'
 I = skimage.io.imread(filename).astype(np.float)
 I = np.mean(I,axis=2)/255

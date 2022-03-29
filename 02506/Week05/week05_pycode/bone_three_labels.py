@@ -2,6 +2,7 @@ import skimage.io
 import matplotlib.pyplot as plt
 import maxflow.fastmin
 import numpy as np
+# bone_three_labels
 
 def segmentation_histogram(ax, I, S, edges=None):
     '''

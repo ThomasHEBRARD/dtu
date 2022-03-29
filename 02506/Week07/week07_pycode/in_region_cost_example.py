@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import skimage.io 
 import slgbuilder
 
-
+# in_region_cost_example
 I = skimage.io.imread('../../../../Data/week7/peaks_image.png').astype(np.int32)
 
 fig, ax = plt.subplots(1,2)

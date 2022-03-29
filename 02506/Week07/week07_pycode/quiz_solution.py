@@ -1,7 +1,7 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 import slgbuilder
-
+# quiz_solution
 I = np.array([[7,1,2,2,4,1],
      [6,6,5,4,5,1],
      [5,2,6,4,4,2],

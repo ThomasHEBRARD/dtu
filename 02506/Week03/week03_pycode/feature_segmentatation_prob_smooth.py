@@ -2,6 +2,7 @@
 Vedrana Andersen Dahl (vand@dtu.dk) 
 Anders Bjorholm Dahl (abda@dtu.dk)
 """
+# feature_segmentatation_prob_smooth
 
 import skimage.io
 import numpy as np

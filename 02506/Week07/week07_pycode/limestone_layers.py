@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import skimage.io 
 import slgbuilder
 
-
+# limestone_layers
 RGB = skimage.io.imread('../../../../Data/week7/rammed-earth-layers-limestone.jpg').astype(np.int32)
 
 fig, ax = plt.subplots(2,2)

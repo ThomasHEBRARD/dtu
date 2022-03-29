@@ -5,6 +5,7 @@ Created on Mon Mar  1 03:15:19 2021
 
 @author: vand
 """
+# bone_binary
 
 import skimage.io
 import matplotlib.pyplot as plt

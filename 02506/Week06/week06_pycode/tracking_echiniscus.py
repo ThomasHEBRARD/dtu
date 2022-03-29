@@ -2,7 +2,7 @@ import imageio
 import numpy as np
 import matplotlib.pyplot as plt
 import simple_snake as sis
-
+# tracking_echiniscus
 filename = '../../../../Data/week6/echiniscus.mp4';
 vid = imageio.get_reader(filename)
 movie = np.array([im for im in vid.iter_data()], dtype=np.float)/255
