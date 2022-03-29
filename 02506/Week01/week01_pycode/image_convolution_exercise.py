@@ -12,10 +12,10 @@ import skimage.io
 import matplotlib.pyplot as plt
 #image_convolution_exercise
 #%% Read in image data
-data_path = '../../../../Data/week1/'
+data_path = '../week1/'
 im_name = 'fibres_xcth.png'
 
-im = skimage.io.imread(data_path + im_name).astype(np.float)
+im = skimage.io.imread(data_path + im_name).astype(float)
 
 fig, ax = plt.subplots(1)
 ax.imshow(im)
@@ -138,7 +138,4 @@ fig.colorbar(pos1, ax=ax[1], shrink=0.65)
 pos2 = ax[2].imshow(im_x_20-im_x_10_times_2)
 fig.colorbar(pos2, ax=ax[2], shrink=0.65)
 
-
-
-
-
+plt.show()
