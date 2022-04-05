@@ -110,13 +110,13 @@ import matplotlib.pyplot as plt
 
 if __name__ == '__main__':
     
-    filename = '../../../../Data/week3/3labels/training_image.png'
+    filename = '../week3/3labels/training_image.png'
     I = skimage.io.imread(filename)
     I = I.astype(np.float)
     
     
     # features based on gaussian derivatives
-    sigma = 1;
+    sigma = 1
     gf = get_gauss_feat_im(I, sigma)
     
     fig,ax = plt.subplots(3,5)

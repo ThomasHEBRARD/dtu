@@ -17,8 +17,8 @@ im_name = 'fibres_xcth.png'
 
 im = skimage.io.imread(data_path + im_name).astype(float)
 
-fig, ax = plt.subplots(1)
-ax.imshow(im)
+# fig, ax = plt.subplots(1)
+# ax.imshow(im)
 
 #%% Compute Gaussian kernels
 
@@ -40,16 +40,17 @@ s = np.ceil(np.max([sigma*size, size]))
 x = np.arange(-s,s+1)
 x = x.reshape(x.shape + (1,))
 
-fig, ax = plt.subplots(1,3)
-ax[0].plot(x,g)
-ax[0].set_title('Gaussian')
-ax[0].set_ylim(-np.max(g),np.max(g))
-ax[1].plot(x,dg)
-ax[1].set_title('1st order derivative')
-ax[1].set_ylim(-np.max(g),np.max(g))
-ax[2].plot(x,ddg)
-ax[2].set_title('2nd order derivative')
-ax[2].set_ylim(-np.max(g),np.max(g))
+# fig, ax = plt.subplots(1,3)
+# ax[0].plot(x,g)
+# ax[0].set_title('Gaussian')
+# ax[0].set_ylim(-np.max(g),np.max(g))
+# ax[1].plot(x,dg)
+# ax[1].set_title('1st order derivative')
+# ax[1].set_ylim(-np.max(g),np.max(g))
+# ax[2].plot(x,ddg)
+# ax[2].set_title('2nd order derivative')
+# ax[2].set_ylim(-np.max(g),np.max(g))
+# plt.show()
 
 
 
@@ -61,10 +62,10 @@ x = np.outer(np.linspace(0, g2d.shape[0], g2d.shape[0]), np.ones(g2d.shape[0]))
 y = x.copy().T # transpose
 z = g2d
 
-fig, ax = plt.subplots(1)
-ax = plt.axes(projection='3d')
-ax.plot_surface(x, y, z,cmap='jet', edgecolor='none')
-
+# fig, ax = plt.subplots(1)
+# ax = plt.axes(projection='3d')
+# ax.plot_surface(x, y, z,cmap='jet', edgecolor='none')
+# plt.show()
 
 #%% 1.1 Verify the separability of the Gaussian kernel
 
@@ -72,11 +73,12 @@ im_g_2d = scipy.ndimage.convolve(im, g2d)
 im_g_two_1d = scipy.ndimage.convolve(scipy.ndimage.convolve(im,g),g.T)
 
 
-fig, ax = plt.subplots(1)
-ax.imshow(im_g_2d-im_g_two_1d)
+# fig, ax = plt.subplots(1)
+# ax.imshow(im_g_2d-im_g_two_1d)
+# plt.show()
 
-#%% 1.2 Derivative by Gaussian and central difference
-# Shows that the small derivative is going to give the same result whereas 
+# %% 1.2 Derivative by Gaussian and central difference
+# Shows that the small derivative is going to give the same result whereas
 # larger kernels will give a smoother result for the Gaussian
 
 sigma = 0.2
@@ -86,10 +88,10 @@ k = np.array([[0.5,0,-0.5]]).T
 im_dx_g = scipy.ndimage.convolve(scipy.ndimage.convolve(im,dg),g.T)
 im_dx_c = scipy.ndimage.convolve(im,k)
 
-fig, ax = plt.subplots(1,2)
-ax[0].imshow(im_dx_g)
-ax[1].imshow(im_dx_c)
-
+# fig, ax = plt.subplots(1,2)
+# ax[0].imshow(im_dx_g)
+# ax[1].imshow(im_dx_c)
+# plt.show()
 
 #%% 1.3 Large convolution of t = 20 equal to 10 convolutions of t = 2
 
@@ -109,10 +111,11 @@ for i in range(1,10):
     im_2_times_10 = scipy.ndimage.convolve(scipy.ndimage.convolve(im_2_times_10,g2),g2.T)
 
 
-fig, ax = plt.subplots(1,3)
-ax[0].imshow(im_20)
-ax[1].imshow(im_2_times_10)
-ax[2].imshow(im_20-im_2_times_10)
+# fig, ax = plt.subplots(1,3)
+# ax[0].imshow(im_20)
+# ax[1].imshow(im_2_times_10)
+# ax[2].imshow(im_20-im_2_times_10)
+# plt.show()
 
 #%% Large derivative with t = 20 compared to Gaussian and small derivative with t = 10
 

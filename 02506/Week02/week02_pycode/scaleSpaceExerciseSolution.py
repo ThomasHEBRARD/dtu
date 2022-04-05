@@ -14,12 +14,12 @@ import cv2
 
 #%% Computing Gaussian and its second order derivative
 
-data_path = '../../../../Data/week2/' # replace with your own data path
+data_path = '../week2/' # replace with your own data path
 
 im = skimage.io.imread(data_path + 'test_blob_uniform.png').astype(np.float)
 
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(im,cmap='gray')
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# ax.imshow(im,cmap='gray')
 
 def getGaussDerivative(t):
     '''
@@ -53,136 +53,139 @@ def getGaussDerivative(t):
     dddg = -2*dg/t - x/t*ddg
     return g, dg, ddg, dddg
     
-g, dg, ddg, dddg = getGaussDerivative(3)
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.plot(g)
-ax.plot(dg)
-ax.plot(ddg)
-ax.plot(dddg)
-
+# g, dg, ddg, dddg = getGaussDerivative(3)
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# ax.plot(g)
+# ax.plot(dg)
+# ax.plot(ddg)
+# ax.plot(dddg)
 #%% Convolve an image
 
-t = 325
-g, dg, ddg, dddg = getGaussDerivative(t)
+# t = 325
+# g, dg, ddg, dddg = getGaussDerivative(t)
 
-Lg = cv2.filter2D(cv2.filter2D(im, -1, g), -1, g.T)
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(Lg,cmap='gray')
+# Lg = cv2.filter2D(cv2.filter2D(im, -1, g), -1, g.T)
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# ax.imshow(Lg, cmap='gray')
+# plt.show()
 
 
 #%% Detecting blobs on one scale
 
-im = skimage.io.imread(data_path + 'test_blob_uniform.png').astype(np.float)
+# t = 325
+# g, dg, ddg, dddg = getGaussDerivative(t)
+# im = skimage.io.imread(data_path + 'test_blob_uniform.png').astype(np.float)
 
-Lxx = cv2.filter2D(cv2.filter2D(im, -1, g), -1, ddg.T)
-Lyy = cv2.filter2D(cv2.filter2D(im, -1, ddg), -1, g.T)
+# Lxx = cv2.filter2D(cv2.filter2D(im, -1, g), -1, ddg.T)
+# Lyy = cv2.filter2D(cv2.filter2D(im, -1, ddg), -1, g.T)
 
-L_blob = t*(Lxx + Lyy)
+# L_blob = t*(Lxx + Lyy) # feature type of blob
 
-# how blob response
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-pos = ax.imshow(L_blob, cmap='gray')
-fig.colorbar(pos)
+# # how blob response
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# pos = ax.imshow(L_blob, cmap='gray')
+# fig.colorbar(pos)
 
+# #%% Find regional maximum in Laplacian
+# magnitudeThres = 50
 
+# coord_pos = skimage.feature.peak_local_max(L_blob, threshold_abs=magnitudeThres)
+# coord_neg = skimage.feature.peak_local_max(-L_blob, threshold_abs=magnitudeThres)
+# coord = np.r_[coord_pos, coord_neg]
 
-#%% Find regional maximum in Laplacian
-magnitudeThres = 50
+# # Show circles
+# theta = np.arange(0, 2*np.pi, step=np.pi/10)
+# theta = np.append(theta, 0)
+# circ = np.array((np.cos(theta),np.sin(theta)))
+# n = coord.shape[0]
+# m = circ.shape[1]
 
-coord_pos = skimage.feature.peak_local_max(L_blob, threshold_abs=magnitudeThres)
-coord_neg = skimage.feature.peak_local_max(-L_blob, threshold_abs=magnitudeThres)
-coord = np.r_[coord_pos, coord_neg]
-
-# Show circles
-theta = np.arange(0, 2*np.pi, step=np.pi/100)
-theta = np.append(theta, 0)
-circ = np.array((np.cos(theta),np.sin(theta)))
-n = coord.shape[0]
-m = circ.shape[1]
-
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(im, cmap='gray')
-plt.plot(coord[:,1], coord[:,0], '.r')
-circ_y = np.sqrt(2*t)*np.reshape(circ[0,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,0],(-1,1)).T
-circ_x = np.sqrt(2*t)*np.reshape(circ[1,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,1],(-1,1)).T
-plt.plot(circ_x, circ_y, 'r')
-
-
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Detecting blobs on multiple scales
-
-im = skimage.io.imread(data_path + 'test_blob_varying.png').astype(np.float)
-
-t = 15
-g, dg, ddg, dddg = getGaussDerivative(t)
-
-r,c = im.shape
-n = 100
-L_blob_vol = np.zeros((r,c,n))
-tStep = np.zeros(n)
-
-Lg = im
-for i in range(0,n):
-    tStep[i] = t*i
-    L_blob_vol[:,:,i] = t*i*(cv2.filter2D(cv2.filter2D(Lg, -1, g), -1, ddg.T) + 
-        cv2.filter2D(cv2.filter2D(Lg, -1, ddg), -1, g.T))
-    Lg = cv2.filter2D(cv2.filter2D(Lg, -1, g), -1, g.T)
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# ax.imshow(im, cmap='gray')
+# plt.plot(coord[:,1], coord[:,0], '.r')
+# circ_y = np.sqrt(2*t)*np.reshape(circ[0,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,0],(-1,1)).T
+# circ_x = np.sqrt(2*t)*np.reshape(circ[1,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,1],(-1,1)).T
+# plt.plot(circ_x, circ_y, 'r')
+# plt.show()
 
 
-#%% find maxima in scale-space
-thres = 40.0
-coord_pos = skimage.feature.peak_local_max(L_blob_vol, threshold_abs = thres)
-coord_neg = skimage.feature.peak_local_max(-L_blob_vol, threshold_abs = thres)
-coord = np.r_[coord_pos,coord_neg]
+# #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# # Detecting blobs on multiple scales
 
-# Show circles
-theta = np.arange(0, 2*np.pi, step=np.pi/100)
-theta = np.append(theta, 0)
-circ = np.array((np.cos(theta),np.sin(theta)))
-n = coord.shape[0]
-m = circ.shape[1]
+# im = skimage.io.imread(data_path + 'test_blob_varying.png').astype(np.float)
 
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(im, cmap='gray')
-plt.plot(coord[:,1], coord[:,0], '.r')
-scale = tStep[coord[:,2]]
-circ_y = np.sqrt(2*scale)*np.reshape(circ[0,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,0],(-1,1)).T
-circ_x = np.sqrt(2*scale)*np.reshape(circ[1,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,1],(-1,1)).T
-plt.plot(circ_x, circ_y, 'r')
+# t = 15
+# g, dg, ddg, dddg = getGaussDerivative(t)
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Detecting blobs in real data (scale space)
+# r,c = im.shape
+# n = 100
+# L_blob_vol = np.zeros((r,c,n))
+# tStep = np.zeros(n)
 
-# diameter interval and steps
-d = np.arange(10, 24.5, step = 0.4)
-tStep = np.sqrt(0.5)*((d/2)**2) # convert to scale
-
-# read image and take out a small part
-im = skimage.io.imread(data_path + 'SEM.png').astype(np.float)
-im = im[200:500,200:500]
-
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(im, cmap='gray')
-
-#%% Compute scale space
-
-r,c = im.shape
-n = d.shape[0]
-L_blob_vol = np.zeros((r,c,n))
-
-for i in range(0,n):
-    g, dg, ddg, dddg = getGaussDerivative(tStep[i])
-    L_blob_vol[:,:,i] = tStep[i]*(cv2.filter2D(cv2.filter2D(im,-1,g),-1,ddg.T) + 
-                                  cv2.filter2D(cv2.filter2D(im,-1,ddg),-1,g.T))
+# Lg = im
+# for i in range(0,n):
+#     tStep[i] = t*i
+#     Lxx = cv2.filter2D(cv2.filter2D(Lg, -1, g), -1, ddg.T)
+#     Lyy = cv2.filter2D(cv2.filter2D(Lg, -1, ddg), -1, g.T)
+#     L_blob_vol[:,:,i] = t*i*(Lxx + Lyy)
+#     Lg = cv2.filter2D(cv2.filter2D(Lg, -1, g), -1, g.T)
 
 
-#%% Find maxima in scale space
+# #%% find maxima in scale-space
+# thres = 40.0
+# coord_pos = skimage.feature.peak_local_max(L_blob_vol, threshold_abs = thres)
+# coord_neg = skimage.feature.peak_local_max(-L_blob_vol, threshold_abs = thres)
+# coord = np.r_[coord_pos,coord_neg]
 
-thres = 30
-coord = skimage.feature.peak_local_max(-L_blob_vol, threshold_abs = thres)
+# # Show circles
+# theta = np.arange(0, 2*np.pi, step=np.pi/100)
+# theta = np.append(theta, 0)
+# circ = np.array((np.cos(theta),np.sin(theta)))
+# n = coord.shape[0]
+# m = circ.shape[1]
 
-# Show circles
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# ax.imshow(im, cmap='gray')
+# plt.plot(coord[:,1], coord[:,0], '.r')
+# scale = tStep[coord[:,2]]
+# circ_y = np.sqrt(2*scale)*np.reshape(circ[0,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,0],(-1,1)).T
+# circ_x = np.sqrt(2*scale)*np.reshape(circ[1,:],(1,-1)).T*np.ones((1,n)) + np.ones((m,1))*np.reshape(coord[:,1],(-1,1)).T
+# plt.plot(circ_x, circ_y, 'r')
+# plt.show()
+
+# #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# # Detecting blobs in real data (scale space)
+
+# # diameter interval and steps
+# d = np.arange(10, 24.5, step = 0.4)
+# tStep = np.sqrt(0.5)*((d/2)**2) # convert to scale
+
+# # read image and take out a small part
+# im = skimage.io.imread(data_path + 'SEM.png').astype(np.float)
+# im = im[200:500,200:500]
+
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# ax.imshow(im, cmap='gray')
+
+# #%% Compute scale space
+
+# r,c = im.shape
+# n = d.shape[0]
+# L_blob_vol = np.zeros((r,c,n))
+
+# for i in range(0,n):
+#     g, dg, ddg, dddg = getGaussDerivative(tStep[i])
+#     Lxx = cv2.filter2D(cv2.filter2D(im,-1,g),-1,ddg.T)
+#     Lyy = cv2.filter2D(cv2.filter2D(im,-1,ddg),-1,g.T)
+#     L_blob_vol[:,:,i] = tStep[i]*(Lxx + Lyy)
+
+
+# #%% Find maxima in scale space
+
+# thres = 30
+# coord = skimage.feature.peak_local_max(-L_blob_vol, threshold_abs = thres)
+
+# # Show circles
 def getCircles(coord, scale):
     '''
     Comptue circle coordinages
@@ -211,14 +214,15 @@ def getCircles(coord, scale):
     circ_x = np.sqrt(2*scale)*circ[[1],:].T*np.ones((1,n)) + np.ones((m,1))*coord[:,[1]].T
     return circ_x, circ_y
 
-scale = tStep[coord[:,2]]
-circ_x, circ_y = getCircles(coord[:,0:2], scale)
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(im, cmap='gray')
-plt.plot(coord[:,1], coord[:,0], '.r')
-plt.plot(circ_x, circ_y, 'r')
+# scale = tStep[coord[:,2]]
+# circ_x, circ_y = getCircles(coord[:,0:2], scale)
+# fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
+# ax.imshow(im, cmap='gray')
+# plt.plot(coord[:,1], coord[:,0], '.r')
+# plt.plot(circ_x, circ_y, 'r')
+# plt.show()
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 # Localize blobs - Example high resolution lab X-ray CT - find the coordinates 
 # using Gaussian smoothing and use the scale space to find the scale 
 
@@ -263,8 +267,10 @@ def detectFibers(im, diameterLimit, stepSize, tCenter, thresMagnitude):
     L_blob_vol = np.zeros((r,c,n))
     for i in range(0,n):
         g, dg, ddg, dddg = getGaussDerivative(tStep[i])
-        L_blob_vol[:,:,i] = tStep[i]*(cv2.filter2D(cv2.filter2D(im,-1,g),-1,ddg.T) + 
-                                      cv2.filter2D(cv2.filter2D(im,-1,ddg),-1,g.T))
+        Lxx = cv2.filter2D(cv2.filter2D(im,-1,g),-1,ddg.T)
+        Lyy = cv2.filter2D(cv2.filter2D(im,-1,ddg),-1,g.T)
+        L_blob_vol[:,:,i] = tStep[i]*(Lxx + Lyy)
+        
     # Detect fibre centers
     g, dg, ddg, dddg = getGaussDerivative(tCenter)
     Lg = cv2.filter2D(cv2.filter2D(im, -1, g), -1, g.T)
@@ -303,7 +309,7 @@ ax.imshow(im, cmap='gray')
 ax.plot(coord[:,1], coord[:,0], 'r.')
 circ_x, circ_y = getCircles(coord, scale)
 plt.plot(circ_x, circ_y, 'r')
-
+plt.show()
 
 
 

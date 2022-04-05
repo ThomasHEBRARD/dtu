@@ -1,2 +1,4 @@
 **/.DS_Store
 *.pyc
+week9_MNIST_data
+week9_CIFAR-10_data

@@ -20,14 +20,11 @@ def boundary_length(S):
     return L
 
 fig, ax = plt.subplots(1,3)
-path = '../../../../Data/week1/fuel_cells/'
+path = '../week1/fuel_cells/'
 
-for i in range(3):
+for i in range(1):
     I = skimage.io.imread(f'{path}fuel_cell_{i+1}.tif')
     L = boundary_length(I)
     ax[i].imshow(I)
     ax[i].set_title(f'L={L}')
-
-
-
-
+plt.show()

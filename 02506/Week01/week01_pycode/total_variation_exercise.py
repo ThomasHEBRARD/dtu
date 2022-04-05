@@ -18,7 +18,7 @@ def total_variation(I):
     v = np.sum(abs(dx))+np.sum(abs(dy))
     return(v)
 
-path = '../../../../Data/week1/'
+path = '../week1/'
 I = skimage.io.imread(path + 'fibres_xcth.png')
 
 I = I.astype('float')/(2**16-1)
@@ -33,5 +33,4 @@ ax[0].imshow(I, cmap='gray')
 ax[0].set_title(f'total variation is {v}')
 ax[1].imshow(Is, cmap='gray')
 ax[1].set_title(f'total variation is {vs}')
-
-
+plt.show()

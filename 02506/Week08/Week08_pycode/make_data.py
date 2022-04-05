@@ -88,10 +88,4 @@ if __name__ == "__main__":
     ax.set_aspect('equal', 'box')
     plt.title('Zero mean training')
     fig.show
-
-
-
-
-
-
-
+    plt.show()

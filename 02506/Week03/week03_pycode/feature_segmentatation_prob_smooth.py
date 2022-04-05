@@ -16,26 +16,29 @@ def ind2labels(ind):
     """ Helper function for transforming uint8 image into labeled image."""
     return np.unique(ind, return_inverse=True)[1].reshape(ind.shape)
 
-path = '../../../../Data/week3/3labels/' # Change path to your directory
+path = '../week3/3labels/' # Change path to your directory
 
 #%% READ IN IMAGES
 training_image = skimage.io.imread(path + 'training_image.png')
-training_image = training_image.astype(np.float)
+training_image = training_image.astype(float)
 training_labels = skimage.io.imread(path + 'training_labels.png')
 
 training_labels = ind2labels(training_labels)
+
 nr_labels = np.max(training_labels)+1 # number of labels in the training image
 
-fig, ax = plt.subplots(1,2)
-ax[0].imshow(training_image, cmap=plt.cm.gray)
-ax[0].set_title('training image')
-ax[1].imshow(training_labels)
-ax[1].set_title('labels for training image')
+# fig, ax = plt.subplots(1,2)
+# ax[0].imshow(training_image, cmap=plt.cm.gray)
+# ax[0].set_title('training image')
+# ax[1].imshow(training_labels)
+# ax[1].set_title('labels for training image')
+
 
 #%% TRAING THE MODEL
 
 sigma = [1,2,3]
 features = lf.get_gauss_feat_multi(training_image, sigma)
+
 features = features.reshape((features.shape[0], features.shape[1]*features.shape[2]))
 labels = training_labels.ravel()
 
@@ -79,7 +82,7 @@ ax[1].set_title('cluster probabilities')
 
 #%% USING THE MODEL
 testing_image = skimage.io.imread(path + 'testing_image.png')
-testing_image = testing_image.astype(np.float)
+testing_image = testing_image.astype(float)
 
 features_testing = lf.get_gauss_feat_multi(testing_image, sigma)
 features_testing = features_testing.reshape((features_testing.shape[0], features_testing.shape[1]*features_testing.shape[2]))
@@ -88,8 +91,10 @@ labels = training_labels.ravel()
 assignment_testing = kmeans.predict(features_testing)
 
 probability_image = np.zeros((assignment_testing.size, nr_labels))
+
 for l in range(nr_labels):
     probability_image[:,l] = cluster_probabilities[assignment_testing, l]
+
 probability_image = probability_image.reshape(testing_image.shape + (nr_labels,))
 
 P_rgb = np.zeros(probability_image.shape[0:2]+(3,))
@@ -100,6 +105,7 @@ fig, ax = plt.subplots(1,2)
 ax[0].imshow(testing_image, cmap=plt.cm.gray)
 ax[0].set_title('testing image')
 ax[1].imshow(P_rgb)
+print(P_rgb)
 ax[1].set_title('probabilities for testing image as RGB')
 
 #%% SMOOTH PROBABILITY MAP
@@ -134,8 +140,7 @@ ax[1][1].imshow(P_rgb_smooth[:,:,1])
 ax[1][2].imshow(P_rgb_smooth[:,:,2])
 ax[1][3].imshow(P_rgb_smooth_max)
 
-
-
+plt.show()
 
 
 

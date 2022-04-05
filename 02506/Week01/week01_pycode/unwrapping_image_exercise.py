@@ -14,7 +14,7 @@ import numpy as np
 import scipy.interpolate
 import matplotlib.pyplot as plt
 
-I = skimage.io.imread('../../../../Data/week1/dental/slice100.png')
+I = skimage.io.imread('../week1/dental/slice100.png')
 
 
 a = 180 # number of angles for unfolding
@@ -34,3 +34,4 @@ U = U.reshape((r,a)).astype(np.uint8)
 fig, ax = plt.subplots(1,2)
 ax[0].imshow(I, cmap='gray')
 ax[1].imshow(U, cmap='gray')
+plt.show()
