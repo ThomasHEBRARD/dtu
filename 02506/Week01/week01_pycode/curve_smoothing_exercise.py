@@ -12,29 +12,35 @@ import numpy as np
 import matplotlib.pyplot as plt
 import scipy.linalg
 
+
 def regularization_matrix(N, alpha, beta):
     """An NxN matrix for imposing elasticity and rigidity to snakes.
     Arguments: alpha is weigth for second derivative (elasticity),
     beta is weigth for (-)fourth derivative (rigidity)."""
     column = np.zeros(N)
-    column[[-2,-1,0,1,2]] = alpha*np.array([0,1,-2,1,0]) + beta*np.array([-1,4,-6,4,-1])
+    column[[-2, -1, 0, 1, 2]] = alpha * np.array([0, 1, -2, 1, 0]) + beta * np.array(
+        [-1, 4, -6, 4, -1]
+    )
     A = scipy.linalg.toeplitz(column)
-    return(scipy.linalg.inv(np.eye(N)-A))
+    return scipy.linalg.inv(np.eye(N) - A)
+
 
 def regularization_matrix_version2(N, alpha, beta):
-    d = alpha*np.array([-2, 1, 0, 0]) + beta*np.array([-6, 4, -1, 0])
-    D = np.fromfunction(lambda i,j: np.minimum((i-j)%N,(j-i)%N), (N,N), dtype=np.int)
-    A = d[np.minimum(D,len(d)-1)]
-    return(scipy.linalg.inv(np.eye(N)-A))
+    d = alpha * np.array([-2, 1, 0, 0]) + beta * np.array([-6, 4, -1, 0])
+    D = np.fromfunction(
+        lambda i, j: np.minimum((i - j) % N, (j - i) % N), (N, N), dtype=np.int
+    )
+    A = d[np.minimum(D, len(d) - 1)]
+    return scipy.linalg.inv(np.eye(N) - A)
 
 
-path = '../week1/curves/'
+path = "../week1/curves/"
 
-X_smooth = np.loadtxt(path + 'dino.txt')
-X_noisy = np.loadtxt(path + 'dino_noisy.txt')
+X_smooth = np.loadtxt(path + "dino.txt")
+X_noisy = np.loadtxt(path + "dino_noisy.txt")
 N = X_noisy.shape[0]
 
-closed_ind = np.r_[np.arange(N),0] # for easy plotting a closed snake
+closed_ind = np.r_[np.arange(N), 0]  # for easy plotting a closed snake
 
 #%%
 # fig, ax = plt.subplots()
@@ -51,11 +57,13 @@ lambda_small = 0.25
 lambda_big = 1
 nr_iters = 100
 
-off_diag = np.diag(np.ones(N-1),-1) + np.diag([1],N-1)
-L = -2*np.diag(np.ones(N)) + off_diag + off_diag.T
-smoothed_small = np.matmul(lambda_small*L+np.eye(N),X_noisy)
-smoothed_big = np.matmul(lambda_big*L+np.eye(N),X_noisy)
-smoothed_many = np.matmul(np.linalg.matrix_power(lambda_small*L+np.eye(N),nr_iters),X_noisy)
+off_diag = np.diag(np.ones(N - 1), -1) + np.diag([1], N - 1)
+L = -2 * np.diag(np.ones(N)) + off_diag + off_diag.T
+smoothed_small = np.matmul(lambda_small * L + np.eye(N), X_noisy)
+smoothed_big = np.matmul(lambda_big * L + np.eye(N), X_noisy)
+smoothed_many = np.matmul(
+    np.linalg.matrix_power(lambda_small * L + np.eye(N), nr_iters), X_noisy
+)
 
 # fig, ax = plt.subplots()
 # ax.plot(smoothed_small[closed_ind,0],smoothed_small[closed_ind,1],'r')
@@ -71,8 +79,8 @@ smoothed_many = np.matmul(np.linalg.matrix_power(lambda_small*L+np.eye(N),nr_ite
 alpha = 10
 beta = 10
 
-smoothed_a = np.matmul(regularization_matrix(N,alpha,0),X_noisy)
-smoothed_b = np.matmul(regularization_matrix(N,0,beta),X_noisy)
+smoothed_a = np.matmul(regularization_matrix(N, alpha, 0), X_noisy)
+smoothed_b = np.matmul(regularization_matrix(N, 0, beta), X_noisy)
 
 # fig, ax = plt.subplots()
 # ax.plot(smoothed_a[closed_ind,0],smoothed_a[closed_ind,1],'b')
@@ -85,27 +93,32 @@ smoothed_b = np.matmul(regularization_matrix(N,0,beta),X_noisy)
 import numpy as np
 import matplotlib.pyplot as plt
 
-path = '../week1/curves/'
-X_noisy = np.loadtxt(path + 'dino_noisy.txt')
+path = "../week1/curves/"
+X_noisy = np.loadtxt(path + "dino_noisy.txt")
 N = X_noisy.shape[0]
-closed_ind = np.r_[np.arange(N),0] # for easy plotting a closed snake
+closed_ind = np.r_[np.arange(N), 0]  # for easy plotting a closed snake
 
 
 def curve_length(X):
-    d = X-np.roll(X, shift=1, axis=0)
+    d = X - np.roll(X, shift=1, axis=0)
     d = (d**2).sum(axis=1)
     d = (np.sqrt(d)).sum()
-    return(d)
+    return d
 
-a = np.array([-2, 1, 0]) 
-D = np.fromfunction(lambda i,j: np.minimum((i-j)%N,(j-i)%N), (N,N), dtype=np.int)
-L = a[np.minimum(D,len(a)-1)]
-X_solution = np.matmul(0.25*L+np.eye(N),X_noisy)
+
+a = np.array([-2, 1, 0])
+D = np.fromfunction(
+    lambda i, j: np.minimum((i - j) % N, (j - i) % N), (N, N), dtype=np.int
+)
+L = a[np.minimum(D, len(a) - 1)]
+X_solution = np.matmul(0.25 * L + np.eye(N), X_noisy)
 
 fig, ax = plt.subplots()
-ax.plot(X_noisy[closed_ind,0], X_noisy[closed_ind,1],'r')
-ax.plot(X_solution[closed_ind,0], X_solution[closed_ind,1],'b--')
-ax.set_title(f'noisy:{curve_length(X_noisy):.5g}, smoothed:{curve_length(X_solution):.5g}')
-ax.axis('equal')
+ax.plot(X_noisy[closed_ind, 0], X_noisy[closed_ind, 1], "r")
+ax.plot(X_solution[closed_ind, 0], X_solution[closed_ind, 1], "b--")
+ax.set_title(
+    f"noisy:{curve_length(X_noisy):.5g}, smoothed:{curve_length(X_solution):.5g}"
+)
+ax.axis("equal")
 
-print(curve_length(X_solution))    
+print(curve_length(X_solution))

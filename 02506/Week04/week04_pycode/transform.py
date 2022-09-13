@@ -8,8 +8,8 @@ Script to develop function to estimate transformation parameters.
 import numpy as np
 
 # Function that computes the parameters
-def get_transformation(p,q):
-    '''
+def get_transformation(p, q):
+    """
     Compute the transformation parameters of hte equation:
         q = s*R@p + t
 
@@ -29,24 +29,26 @@ def get_transformation(p,q):
     s : float
         scale parameter.
 
-    '''
-    m_p = np.mean(p,axis=1,keepdims=True)
-    m_q = np.mean(q,axis=1,keepdims=True)
-    s = np.linalg.norm(q-m_q)/np.linalg.norm(p-m_p)
-    
-    C = (q-m_q)@(p-m_p).T
-    U,S,V = np.linalg.svd(C)
-    
-    R_ = U@V
-    R = R_@np.array([[1,0],[0,np.linalg.det(R_)]])
-    
-    t = m_q - s*R@m_p
-    return R,t,s
+    """
+    m_p = np.mean(p, axis=1, keepdims=True)
+    m_q = np.mean(q, axis=1, keepdims=True)
+    s = np.linalg.norm(q - m_q) / np.linalg.norm(p - m_p)
+
+    C = (q - m_q) @ (p - m_p).T
+    U, S, V = np.linalg.svd(C)
+
+    R_ = U @ V
+    R = R_ @ np.array([[1, 0], [0, np.linalg.det(R_)]])
+
+    t = m_q - s * R @ m_p
+    return R, t, s
+
 
 # Robust transformation
 
-def get_robust_transformation(p,q,thres = 3):
-    '''
+
+def get_robust_transformation(p, q, thres=3):
+    """
     Compute the transformation parameters of hte equation:
         q = s*R@p + t
 
@@ -68,15 +70,14 @@ def get_robust_transformation(p,q,thres = 3):
     idx : numpy array
         index of the points in p and q that are inliers in the robust match
 
-    '''
-    
-    R,t,s = get_transformation(p,q)
+    """
 
-    q_1 = s*R@p + t
+    R, t, s = get_transformation(p, q)
+
+    q_1 = s * R @ p + t
     d = np.linalg.norm(q - q_1, axis=0)
-    idx = np.where(d<thres)[0]
-    
-    R,t,s = get_transformation(p[:,idx],q[:,idx])
-    
-    return R,t,s,idx
+    idx = np.where(d < thres)[0]
 
+    R, t, s = get_transformation(p[:, idx], q[:, idx])
+
+    return R, t, s, idx

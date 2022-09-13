@@ -74,7 +74,7 @@ def solution3(A, B, C):
                 res += k
                 MAP[k] -= 1
                 break
-        else:   
+        else:
             return res
     return res
 

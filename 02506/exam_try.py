@@ -6,4 +6,3 @@ Lyy = 7.16
 print("Question1: ", t * (Lxx + Lyy))
 
 # Question 2:
-

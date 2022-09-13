@@ -763,60 +763,66 @@ def dieSimulator(self, n, rollMax):
     return dfs(0, 0)
 
 
-mod=1000000007
+mod = 1000000007
+
 
 def solve(n, rollMax, prev, consecLen):
-    if n==0:
+    if n == 0:
         return 1
-    ans=0
+    ans = 0
     for i in range(1, 7):
-        if prev==i:
-            consecLen+=1
-            if rollMax[i-1]-consecLen>0:
-                ans+=solve(n-1,rollMax[:], i, consecLen)
+        if prev == i:
+            consecLen += 1
+            if rollMax[i - 1] - consecLen > 0:
+                ans += solve(n - 1, rollMax[:], i, consecLen)
             else:
                 continue
-            consecLen-=1
+            consecLen -= 1
         else:
-            if rollMax[i-1]>0:
-                ans+=solve(n-1, rollMax[:], i, 0)
-            
-    return ans%mod
-print(solve(3, tuple([2, 3, 2, 10, 2, 5]), -1,0))
+            if rollMax[i - 1] > 0:
+                ans += solve(n - 1, rollMax[:], i, 0)
+
+    return ans % mod
+
+
+print(solve(3, tuple([2, 3, 2, 10, 2, 5]), -1, 0))
+
 
 def countDiceSequences(N, rollMax):
     # The idea here is to count the number of combination that we have to remove
-    # To do that, we consider one roll, and consider every other possible rolls 
+    # To do that, we consider one roll, and consider every other possible rolls
     # while respecting the rules. It is like building a tree, and for each node, we look at
     # the ancestors if the number of consecutive rolls is respected, and then we create other
-    # combination etc. We have to go at the end of each sequence, therefore we can use 
-    # a Depth First Search algorithm. DFS is 
-    
+    # combination etc. We have to go at the end of each sequence, therefore we can use
+    # a Depth First Search algorithm. DFS is
+
     # To optimize the process, we use memoization.
 
     def dfs(N, rollMax, previous, consecutive_roll):
         # base case:
         if N == 0:
             return 1
-            
+
         result = 0
-    
+
         for roll in range(1, 7):
             # check consecutive
             if previous == roll:
                 consecutive_roll += 1
-                
-                if consecutive_roll < rollMax[roll-1]: # 1-based
+
+                if consecutive_roll < rollMax[roll - 1]:  # 1-based
                     result += dfs(N - 1, rollMax, roll, consecutive_roll)
                 else:
                     continue
-                # If the consecutive roll 
+                # If the consecutive roll
                 consecutive_roll -= 1
             else:
-                if rollMax[roll-1] > 0:
-                    result += dfs(N-1, rollMax, roll, 0)
+                if rollMax[roll - 1] > 0:
+                    result += dfs(N - 1, rollMax, roll, 0)
         return result % 1000000007
+
     return dfs(N, rollmax, -1, 0)
+
 
 countDiceSequences(3, [2, 3, 2, 10, 2, 5])
 

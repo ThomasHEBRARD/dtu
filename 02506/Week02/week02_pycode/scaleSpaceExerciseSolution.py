@@ -14,15 +14,16 @@ import cv2
 
 #%% Computing Gaussian and its second order derivative
 
-data_path = '../week2/' # replace with your own data path
+data_path = "../week2/"  # replace with your own data path
 
-im = skimage.io.imread(data_path + 'test_blob_uniform.png').astype(np.float)
+im = skimage.io.imread(data_path + "test_blob_uniform.png").astype(np.float)
 
 # fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
 # ax.imshow(im,cmap='gray')
 
+
 def getGaussDerivative(t):
-    '''
+    """
     Computes kernels of Gaussian and its derivatives.
     Parameters
     ----------
@@ -40,19 +41,20 @@ def getGaussDerivative(t):
     dddg : numpy array
         Third order derivative of Gaussian.
 
-    '''
+    """
 
     kSize = 5
     s = np.sqrt(t)
-    x = np.arange(int(-np.ceil(s*kSize)), int(np.ceil(s*kSize))+1)
-    x = np.reshape(x,(-1,1))
-    g = np.exp(-x**2/(2*t))
-    g = g/np.sum(g)
-    dg = -x/t*g
-    ddg = -g/t - x/t*dg
-    dddg = -2*dg/t - x/t*ddg
+    x = np.arange(int(-np.ceil(s * kSize)), int(np.ceil(s * kSize)) + 1)
+    x = np.reshape(x, (-1, 1))
+    g = np.exp(-(x**2) / (2 * t))
+    g = g / np.sum(g)
+    dg = -x / t * g
+    ddg = -g / t - x / t * dg
+    dddg = -2 * dg / t - x / t * ddg
     return g, dg, ddg, dddg
-    
+
+
 # g, dg, ddg, dddg = getGaussDerivative(3)
 # fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
 # ax.plot(g)
@@ -187,7 +189,7 @@ def getGaussDerivative(t):
 
 # # Show circles
 def getCircles(coord, scale):
-    '''
+    """
     Comptue circle coordinages
 
     Parameters
@@ -204,15 +206,22 @@ def getCircles(coord, scale):
     circ_y : numpy array
         y coordinates of circle. Each column is one circle.
 
-    '''
-    theta = np.arange(0, 2*np.pi, step=np.pi/100)
+    """
+    theta = np.arange(0, 2 * np.pi, step=np.pi / 100)
     theta = np.append(theta, 0)
-    circ = np.array((np.cos(theta),np.sin(theta)))
+    circ = np.array((np.cos(theta), np.sin(theta)))
     n = coord.shape[0]
     m = circ.shape[1]
-    circ_y = np.sqrt(2*scale)*circ[[0],:].T*np.ones((1,n)) + np.ones((m,1))*coord[:,[0]].T
-    circ_x = np.sqrt(2*scale)*circ[[1],:].T*np.ones((1,n)) + np.ones((m,1))*coord[:,[1]].T
+    circ_y = (
+        np.sqrt(2 * scale) * circ[[0], :].T * np.ones((1, n))
+        + np.ones((m, 1)) * coord[:, [0]].T
+    )
+    circ_x = (
+        np.sqrt(2 * scale) * circ[[1], :].T * np.ones((1, n))
+        + np.ones((m, 1)) * coord[:, [1]].T
+    )
     return circ_x, circ_y
+
 
 # scale = tStep[coord[:,2]]
 # circ_x, circ_y = getCircles(coord[:,0:2], scale)
@@ -223,17 +232,17 @@ def getCircles(coord, scale):
 # plt.show()
 
 # #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-# Localize blobs - Example high resolution lab X-ray CT - find the coordinates 
-# using Gaussian smoothing and use the scale space to find the scale 
+# Localize blobs - Example high resolution lab X-ray CT - find the coordinates
+# using Gaussian smoothing and use the scale space to find the scale
 
-im = skimage.io.imread(data_path + 'CT_lab_high_res.png').astype(np.float)/255
+im = skimage.io.imread(data_path + "CT_lab_high_res.png").astype(np.float) / 255
 
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(im, cmap='gray')
+fig, ax = plt.subplots(1, 1, figsize=(10, 10), sharex=True, sharey=True)
+ax.imshow(im, cmap="gray")
 
 # %% Set parameters
 def detectFibers(im, diameterLimit, stepSize, tCenter, thresMagnitude):
-    '''
+    """
     Detects fibers in images by finding maxima of Gaussian smoothed image
 
     Parameters
@@ -256,34 +265,34 @@ def detectFibers(im, diameterLimit, stepSize, tCenter, thresMagnitude):
     scale : numpy array
         n x 1 array of scales t (variance of the Gaussian).
 
-    '''
-    
-    radiusLimit = diameterLimit/2
-    radiusSteps = np.arange(radiusLimit[0], radiusLimit[1]+0.1, stepSize)
-    tStep = radiusSteps**2/np.sqrt(2)
-    
-    r,c = im.shape
+    """
+
+    radiusLimit = diameterLimit / 2
+    radiusSteps = np.arange(radiusLimit[0], radiusLimit[1] + 0.1, stepSize)
+    tStep = radiusSteps**2 / np.sqrt(2)
+
+    r, c = im.shape
     n = tStep.shape[0]
-    L_blob_vol = np.zeros((r,c,n))
-    for i in range(0,n):
+    L_blob_vol = np.zeros((r, c, n))
+    for i in range(0, n):
         g, dg, ddg, dddg = getGaussDerivative(tStep[i])
-        Lxx = cv2.filter2D(cv2.filter2D(im,-1,g),-1,ddg.T)
-        Lyy = cv2.filter2D(cv2.filter2D(im,-1,ddg),-1,g.T)
-        L_blob_vol[:,:,i] = tStep[i]*(Lxx + Lyy)
-        
+        Lxx = cv2.filter2D(cv2.filter2D(im, -1, g), -1, ddg.T)
+        Lyy = cv2.filter2D(cv2.filter2D(im, -1, ddg), -1, g.T)
+        L_blob_vol[:, :, i] = tStep[i] * (Lxx + Lyy)
+
     # Detect fibre centers
     g, dg, ddg, dddg = getGaussDerivative(tCenter)
     Lg = cv2.filter2D(cv2.filter2D(im, -1, g), -1, g.T)
-    
-    coord = skimage.feature.peak_local_max(Lg, threshold_abs = thresMagnitude)
-    
+
+    coord = skimage.feature.peak_local_max(Lg, threshold_abs=thresMagnitude)
+
     # Find coordinates and size (scale) of fibres
-    magnitudeIm = np.min(L_blob_vol, axis = 2)
-    scaleIm = np.argmin(L_blob_vol, axis = 2)
-    scales = scaleIm[coord[:,0], coord[:,1]]
-    magnitudes = -magnitudeIm[coord[:,0], coord[:,1]]
+    magnitudeIm = np.min(L_blob_vol, axis=2)
+    scaleIm = np.argmin(L_blob_vol, axis=2)
+    scales = scaleIm[coord[:, 0], coord[:, 1]]
+    magnitudes = -magnitudeIm[coord[:, 0], coord[:, 1]]
     idx = np.where(magnitudes > thresMagnitude)
-    coord = coord[idx[0],:]
+    coord = coord[idx[0], :]
     scale = tStep[scales[idx[0]]]
     return coord, scale
 
@@ -291,7 +300,7 @@ def detectFibers(im, diameterLimit, stepSize, tCenter, thresMagnitude):
 #%% Set parameters
 
 # Radius limit
-diameterLimit = np.array([10,25])
+diameterLimit = np.array([10, 25])
 stepSize = 0.3
 
 # Parameter for Gaussian to detect center point
@@ -304,33 +313,9 @@ thresMagnitude = 8
 coord, scale = detectFibers(im, diameterLimit, stepSize, tCenter, thresMagnitude)
 
 # Plot detected fibres
-fig, ax = plt.subplots(1,1,figsize=(10,10),sharex=True,sharey=True)
-ax.imshow(im, cmap='gray')
-ax.plot(coord[:,1], coord[:,0], 'r.')
+fig, ax = plt.subplots(1, 1, figsize=(10, 10), sharex=True, sharey=True)
+ax.imshow(im, cmap="gray")
+ax.plot(coord[:, 1], coord[:, 0], "r.")
 circ_x, circ_y = getCircles(coord, scale)
-plt.plot(circ_x, circ_y, 'r')
+plt.plot(circ_x, circ_y, "r")
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

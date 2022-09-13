@@ -13,18 +13,20 @@ import skimage.io
 import numpy as np
 import matplotlib.pyplot as plt
 
+
 def boundary_length(S):
-    lx = S[1:,:]!=S[:-1,:]
-    ly = S[:,1:]!=S[:,:-1]
-    L = np.sum(lx)+np.sum(ly)
+    lx = S[1:, :] != S[:-1, :]
+    ly = S[:, 1:] != S[:, :-1]
+    L = np.sum(lx) + np.sum(ly)
     return L
 
-fig, ax = plt.subplots(1,3)
-path = '../week1/fuel_cells/'
+
+fig, ax = plt.subplots(1, 3)
+path = "../week1/fuel_cells/"
 
 for i in range(1):
-    I = skimage.io.imread(f'{path}fuel_cell_{i+1}.tif')
+    I = skimage.io.imread(f"{path}fuel_cell_{i+1}.tif")
     L = boundary_length(I)
     ax[i].imshow(I)
-    ax[i].set_title(f'L={L}')
+    ax[i].set_title(f"L={L}")
 plt.show()

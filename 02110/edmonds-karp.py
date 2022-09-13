@@ -1,4 +1,5 @@
-from collections import deque 
+from collections import deque
+
 
 class EdgeInfo:
     def __init__(self, v, u, edge_id, forward):
@@ -7,12 +8,12 @@ class EdgeInfo:
         self.edge_id = edge_id
         self.forward = forward
 
-        
+
 class FlowGraph:
     def __init__(self, number_of_nodes):
         # not agency matrix cause we wont be able tu run bfs
         self.number_of_nodes = number_of_nodes
-        self.adjency_list  = [[] for _ in range(number_of_nodes)]
+        self.adjency_list = [[] for _ in range(number_of_nodes)]
         self.flow = []
         self.capacity = []
 
@@ -36,6 +37,7 @@ class FlowGraph:
             self.flow[edge.edge_id] += flow
         else:
             self.flow[edge.edge_id] -= flow
+
 
 def BFS(graph, s, t):
     marked = [False for _ in range(graph.number_of_nodes)]
@@ -63,6 +65,7 @@ def BFS(graph, s, t):
         return path
     return None
 
+
 def edmonds(graph, s, t):
     while True:
         path = BFS(graph, s, t)
@@ -81,6 +84,7 @@ def edmonds(graph, s, t):
             total_flow += graph.flow[edge.edge_id]
 
     return total_flow
+
 
 n = int(input())
 m = int(input())
