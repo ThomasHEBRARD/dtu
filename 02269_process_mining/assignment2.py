@@ -27,35 +27,67 @@ def dependency_graph(log):
     return TEMP
 
 
-# f = """Task_A;case_1;user_1;2019-09-09 17:36:47
-# Task_B;case_1;user_3;2019-09-11 09:11:13
-# Task_D;case_1;user_6;2019-09-12 10:00:12
-# Task_E;case_1;user_7;2019-09-12 18:21:32
-# Task_F;case_1;user_8;2019-09-13 13:27:41
-
-# Task_A;case_2;user_2;2019-09-14 08:56:09
-# Task_B;case_2;user_3;2019-09-14 09:36:02
-# Task_D;case_2;user_5;2019-09-15 10:16:40
-
-# Task_G;case_1;user_6;2019-09-18 19:14:14
-# Task_G;case_2;user_6;2019-09-19 15:39:15
-# Task_H;case_1;user_2;2019-09-19 16:48:16
-# Task_E;case_2;user_7;2019-09-20 14:39:45
-# Task_F;case_2;user_8;2019-09-22 09:16:16
-
-# Task_A;case_3;user_2;2019-09-25 08:39:24
-# Task_H;case_2;user_1;2019-09-26 12:19:46
-# Task_B;case_3;user_4;2019-09-29 10:56:14
-# Task_C;case_3;user_1;2019-09-30 15:41:22
-# """
-
-# log = log_as_dictionary(f)
-
-# dg = dependency_graph(log)
-
-# for ai in sorted(dg.keys()):
-#    for aj in sorted(dg[ai].keys()):
-#        print(ai, '->', aj, ':', dg[ai][aj])
-
 ########################################################################
 ########################################################################
+from xml.dom import minidom
+import datetime
+
+
+def read_from_file(filename):
+    CASES = {}
+    file = minidom.parse(
+        f"/Users/thomashebrard/code/dtu/02269_process_mining/{filename}"
+    )
+
+    models = file.getElementsByTagName("trace")
+    for model in models:
+        case = model.getElementsByTagName("string")[0].attributes["value"].value
+        if case not in CASES:
+            CASES[case] = []
+
+        for event in model.getElementsByTagName("event"):
+            event_data = {
+                "org:resource": None,
+                "concept:name": None,
+                "cost": None,
+                "time:timestamp": None,
+            }
+            # strings:
+            for ev in event.getElementsByTagName("string"):
+                if ev.attributes["key"].value in event_data:
+                    event_data[ev.attributes["key"].value] = ev.attributes[
+                        "value"
+                    ].value
+            # ints
+            for ev in event.getElementsByTagName("int"):
+                if ev.attributes["key"].value in event_data:
+                    event_data[ev.attributes["key"].value] = int(
+                        ev.attributes["value"].value
+                    )
+
+            date = datetime.datetime.strptime(
+                event.getElementsByTagName("date")[0].attributes["value"].value,
+                "%Y-%m-%dT%H:%M:%S%z",
+            )
+            date = date.replace(tzinfo=None)
+            event_data[
+                event.getElementsByTagName("date")[0].attributes["key"].value
+            ] = date
+            CASES[case].append(event_data)
+    return CASES
+
+
+def dependency_graph(log):
+    for key, value in log.items():
+        log[key] = [v["concept:name"] for v in value]
+
+    TEMP = {}
+    for tasks in log.values():
+        for i in range(len(tasks) - 1):
+            if tasks[i] not in TEMP:
+                TEMP[tasks[i]] = {tasks[i + 1]: 1}
+            elif tasks[i + 1] not in TEMP[tasks[i]]:
+                TEMP[tasks[i]][tasks[i + 1]] = 1
+            else:
+                TEMP[tasks[i]][tasks[i + 1]] += 1
+    return TEMP
