@@ -148,9 +148,6 @@ def dependency_graph(log):
 def alpha(file):
     pass
 
-def read_from_file(filename):
-    pass
-
 
 ###############################################################
 #########                    TESTING                   ########
