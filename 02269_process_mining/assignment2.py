@@ -29,6 +29,7 @@ def dependency_graph(log):
 
 ########################################################################
 ########################################################################
+
 from xml.dom import minidom
 import datetime
 
@@ -39,8 +40,7 @@ def read_from_file(filename):
         f"/Users/thomashebrard/code/dtu/02269_process_mining/{filename}"
     )
 
-    models = file.getElementsByTagName("trace")
-    for model in models:
+    for model in file.getElementsByTagName("trace"):
         case = model.getElementsByTagName("string")[0].attributes["value"].value
         if case not in CASES:
             CASES[case] = []
