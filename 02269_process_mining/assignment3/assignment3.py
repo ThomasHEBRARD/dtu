@@ -287,22 +287,20 @@ def alpha(cases):
             vv, str
         ) else vv
         for k in kk:
-            if k not in pn.transitions:
-                pn.add_transition(name=k, id=-transition_idx)
-                transition_idx += 1
+            pn.add_transition(name=k, id=-transition_idx)
+            transition_idx += 1
         for v in vv:
-            if v not in pn.transitions:
-                pn.add_transition(name=v, id=-transition_idx)
-                transition_idx += 1
+            pn.add_transition(name=v, id=-transition_idx)
+            transition_idx += 1
 
         if len(kk) == 1:
+            pn.add_edge(pn.transition_name_to_id(kk[0]), place)
             for v in vv:
-                pn.add_edge(pn.transition_name_to_id(kk[0]), place)
                 pn.add_edge(place, pn.transition_name_to_id(v))
         else:
             for k in kk:
-                pn.add_edge(place, pn.transition_name_to_id(k))
-                pn.add_edge(pn.transition_name_to_id(vv[0]), place)
+                pn.add_edge(pn.transition_name_to_id(k), place)
+            pn.add_edge(place, pn.transition_name_to_id(vv[0]))
 
     return pn
 
