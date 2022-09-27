@@ -265,14 +265,13 @@ def alpha(cases):
         ]
 
         for set in sets:
-            if set in possible_sets[:i] + possible_sets[i+1:]:
+            if set in possible_sets[:i] + possible_sets[i + 1 :]:
                 to_remove.append(set)
 
     FINAL_SETS = []
     for pos in possible_sets:
         if pos not in to_remove:
             FINAL_SETS.append(pos)
-
 
     ############################ 6: CREATE PETRI NET ############################
 
@@ -284,7 +283,9 @@ def alpha(cases):
         place = pn.places[idx].id
 
         kk, vv = set
-        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(vv, str) else vv
+        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(
+            vv, str
+        ) else vv
         for k in kk:
             if k not in pn.transitions:
                 pn.add_transition(name=k, id=-transition_idx)
@@ -311,6 +312,7 @@ def alpha(cases):
 ###############################################################
 
 mined_model = alpha(read_from_file("extension-log.xes"))
+
 
 def check_enabled(pn):
     ts = [
