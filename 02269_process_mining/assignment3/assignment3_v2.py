@@ -1,9 +1,7 @@
-import pprint
 import datetime
 
 from itertools import combinations
 from xml.dom import minidom
-from xxlimited import foo
 
 ###############################################################
 #########                   PETRI NET                  ########
@@ -151,6 +149,8 @@ def dependency_graph(log):
 
 
 def alpha(cases):
+    FIRST_TRANSITION = list(cases.values())[0][0]
+    FINAL_TRANSITION = list(cases.values())[-1][-1]
 
     footprint = {}
 
@@ -201,8 +201,6 @@ def alpha(cases):
                 footprint[v][k] = "||"
                 footprint[k][v] = "||"
 
-    pprint.pprint(footprint)
-
     #################### POSSIBLE SETS ####################
 
     possible_sets = []
@@ -250,37 +248,94 @@ def alpha(cases):
             if check_validity(footprint, possibilities):
                 possible_sets.append([possibilities, k])
 
+    ###################### 5: DROP NON MAXIMUM SETS #####################
+
+    to_remove = []
+
+    for i in range(len(possible_sets)):
+        s = possible_sets[i]
+        kk, vv = s
+        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(
+            vv, str
+        ) else vv
+        sets = [
+            list(com)
+            for sub in range(1, len(all_tasks))
+            for com in combinations(kk + vv, sub + 1)
+        ]
+
+        for set in sets:
+            if set in possible_sets[:i] + possible_sets[i+1:]:
+                to_remove.append(set)
+
+    FINAL_SETS = []
+    for pos in possible_sets:
+        if pos not in to_remove:
+            FINAL_SETS.append(pos)
+
+
+    ############################ 6: CREATE PETRI NET ############################
+
+    pn = PetriNet()
+    transition_idx = 1
+
+    for idx, set in enumerate(FINAL_SETS, 1):  # Already in the right order
+        pn.add_place(idx)
+        place = pn.places[idx].id
+
+        kk, vv = set
+        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(vv, str) else vv
+        for k in kk:
+            if k not in pn.transitions:
+                pn.add_transition(name=k, id=-transition_idx)
+                transition_idx += 1
+        for v in vv:
+            if v not in pn.transitions:
+                pn.add_transition(name=v, id=-transition_idx)
+                transition_idx += 1
+
+        if len(kk) == 1:
+            for v in vv:
+                pn.add_edge(pn.transition_name_to_id(kk[0]), place)
+                pn.add_edge(place, pn.transition_name_to_id(v))
+        else:
+            for k in kk:
+                pn.add_edge(place, pn.transition_name_to_id(k))
+                pn.add_edge(pn.transition_name_to_id(vv[0]), place)
+
+    return pn
 
 
 ###############################################################
 #########                    TESTING                   ########
 ###############################################################
 
-CASES = {
-    "case_1": [
-        {"concept:name": "a"},
-        {"concept:name": "b"},
-        {"concept:name": "c"},
-        {"concept:name": "d"},
-    ],
-    "case_2": [
-        {"concept:name": "a"},
-        {"concept:name": "c"},
-        {"concept:name": "b"},
-        {"concept:name": "d"},
-    ],
-    "case_3": [{"concept:name": "a"}, {"concept:name": "e"}, {"concept:name": "d"}],
-}
-mined_model = alpha(CASES)
+mined_model = alpha(read_from_file("extension-log.xes"))
 
-# def check_enabled(pn):
-#   ts = ["record issue", "inspection", "intervention authorization", "action not required", "work mandate", "no concession", "work completion", "issue completion"]
-#   for t in ts:
-#     print (pn.is_enabled(pn.transition_name_to_id(t)))
-#   print("")
+def check_enabled(pn):
+    ts = [
+        "record issue",
+        "inspection",
+        "intervention authorization",
+        "action not required",
+        "work mandate",
+        "no concession",
+        "work completion",
+        "issue completion",
+    ]
+    for t in ts:
+        print(pn.is_enabled(pn.transition_name_to_id(t)))
+    print("")
 
 
-# trace = ["record issue", "inspection", "intervention authorization", "work mandate", "work completion", "issue completion"]
-# for a in trace:
-#   check_enabled(mined_model)
-#   mined_model.fire_transition(mined_model.transition_name_to_id(a))
+trace = [
+    "record issue",
+    "inspection",
+    "intervention authorization",
+    "work mandate",
+    "work completion",
+    "issue completion",
+]
+for a in trace:
+    check_enabled(mined_model)
+    mined_model.fire_transition(mined_model.transition_name_to_id(a))
