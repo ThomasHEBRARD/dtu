@@ -150,123 +150,64 @@ def dependency_graph(log):
 
 
 def alpha(cases):
-    # TASKS = {
-    #     "record issue": "A",
-    #     "inspection": "B",
-    #     "intervention authorization": "C",
-    #     "no concession": "D",
-    #     "issue completion": "E",
-    #     "work completion": "F",
-    #     "work mandate": "G",
-    #     "action not required": "H"
-    # }
-    TASKS = {"a": "a", "b": "b", "c": "c", "d": "d", "e": "e"}
 
     footprint = {}
 
-    for _, traces in cases.items():
-        # first task
-        task = TASKS[traces[0]["concept:name"]]
-        next_task = TASKS[traces[1]["concept:name"]]
-        if task not in footprint:
-            footprint[task] = {}
-        else:
-            if next_task not in footprint[task]:
-                footprint[task][next_task] = "->"
+    #################### NORMAL ORDER ####################
 
-        for task_idx in range(1, len(traces) - 1):
-            task = TASKS[traces[task_idx]["concept:name"]]
-            next_task = TASKS[traces[task_idx + 1]["concept:name"]]
-            previous_task = TASKS[traces[task_idx - 1]["concept:name"]]
+    for case in cases.values():
+        for idx in range(len(case) - 1):
+            task = case[idx]["concept:name"]
+            next_task = case[idx + 1]["concept:name"]
 
             if task not in footprint:
-                footprint[task] = {}
-
-            elif (
-                next_task in footprint
-                and task in footprint[next_task]
-                and footprint[next_task][task] == "->"
-            ):
-                footprint[next_task][task] = "||"
-                footprint[task][next_task] = "||"
-            # elif previous_task in footprint and task in footprint[previous_task] and footprint[previous_task][task] == "-":
-            #     footprint[previous_task][task] = "||"
-            #     footprint[task][previous_task] = "||"
-
+                footprint[task] = {next_task: "->"}
             else:
-                if next_task not in footprint[task]:
-                    footprint[task][next_task] = "->"
-                if previous_task not in footprint[task]:
-                    footprint[task][previous_task] = "<-"
-        # last task
-        task = TASKS[traces[-1]["concept:name"]]
-        previous_task = TASKS[traces[-2]["concept:name"]]
+                footprint[task][next_task] = "->"
 
-        if task not in footprint:
-            footprint[task] = {}
-        else:
-            if previous_task not in footprint[task]:
-                footprint[task][previous_task] = "<-"
+            if (s := case[-1]["concept:name"]) not in footprint:
+                footprint[s] = {}
+    ############################################################
 
-    for not_related_task in TASKS.values():
-        if not_related_task not in footprint:
-            footprint[not_related_task] = {}
-    for not_related_task in TASKS.values():
-        for task in footprint:
-            if not_related_task not in footprint[task]:
-                footprint[task][not_related_task] = "#"
+    #################### REVERSE ORDER ########################
 
+    for case in cases.values():
+        for idx in range(1, len(case)):
+            idx = -idx
+            task = case[idx]["concept:name"]
+            prev_task = case[idx - 1]["concept:name"]
+
+            footprint[task][prev_task] = "<-"
+    ############################################################
+
+    all_tasks = list(footprint.keys())
+
+    #################### FILL EMPTY SPOTS ####################
+    for f in footprint.values():
+        for task in all_tasks:
+            if task not in f:
+                f[task] = "#"
+
+    #################### REMOVE DOUBLES ####################
+
+    for k in all_tasks:
+        for v in all_tasks:
+            if (
+                footprint[k][v] == footprint[v][k]
+                and footprint[k][v] != "#"
+                and footprint[v][k] != "#"
+            ):
+                footprint[v][k] = "||"
+                footprint[k][v] = "||"
+
+                
     pprint.pprint(footprint)
-
-    possible_set = []
-
-    for task, linked_tasks in footprint.items():
-        for linked_task, value in linked_tasks.items():
-            if value == "->":
-                possible_set.append([task, linked_task])
-
-        # doubles ->
-        temp_set = []
-        temp_set_final = []
-        for linked_task, value in linked_tasks.items():
-            if value == "->":
-                temp_set.append(linked_task)
-        if len(temp_set) > 1:
-            for t in temp_set:
-                for tt in temp_set:
-                    if tt != t and footprint[tt][t] == "#":
-                        if tt not in temp_set_final:
-                            temp_set_final.append(tt)
-                        if t not in temp_set_final:
-                            temp_set_final.append(t)
-        if len(temp_set_final):
-            possible_set.append([task, temp_set_final])
-
-        # doubles <-
-        temp_set = []
-        temp_set_final = []
-        for linked_task, value in linked_tasks.items():
-            if value == "<-":
-                temp_set.append(linked_task)
-        if len(temp_set) > 1:
-            for t in temp_set:
-                for tt in temp_set:
-                    if tt != t and footprint[tt][t] == "#":
-                        if tt not in temp_set_final:
-                            temp_set_final.append(tt)
-                        if t not in temp_set_final:
-                            temp_set_final.append(t)
-        if len(temp_set_final):
-            possible_set.append([temp_set_final, task])
-
-    print(possible_set)
 
 
 ###############################################################
 #########                    TESTING                   ########
 ###############################################################
 
-# mined_model = alpha(read_from_file("extension-log.xes"))
 CASES = {
     "case_1": [
         {"concept:name": "a"},
