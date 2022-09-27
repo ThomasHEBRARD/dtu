@@ -1,6 +1,7 @@
 import pprint
 import datetime
 
+from itertools import combinations
 from xml.dom import minidom
 from xxlimited import foo
 
@@ -200,8 +201,55 @@ def alpha(cases):
                 footprint[v][k] = "||"
                 footprint[k][v] = "||"
 
-                
     pprint.pprint(footprint)
+
+    #################### POSSIBLE SETS ####################
+
+    possible_sets = []
+
+    # Simple with simple
+    for k in all_tasks:
+        for v in all_tasks:
+            if footprint[k][v] == "->":
+                possible_sets.append([k, v])
+
+    def check_validity(footprint, possibilities):
+        for k in possibilities:
+            for v in possibilities:
+                if footprint[k][v] != "#":
+                    return False
+        return True
+
+    # Simple with multiples
+    for k in all_tasks:
+        candidates = []
+        for v in all_tasks:
+            if footprint[k][v] == "->":
+                candidates.append(v)
+        all_possibilities = [
+            list(com)
+            for sub in range(1, len(all_tasks))
+            for com in combinations(candidates, sub + 1)
+        ]
+        for possibilities in all_possibilities:
+            if check_validity(footprint, possibilities):
+                possible_sets.append([k, possibilities])
+
+    # SAME IN REVERSE
+    for k in all_tasks:
+        candidates = []
+        for v in all_tasks:
+            if footprint[k][v] == "<-":
+                candidates.append(v)
+        all_possibilities = [
+            list(com)
+            for sub in range(1, len(all_tasks))
+            for com in combinations(candidates, sub + 1)
+        ]
+        for possibilities in all_possibilities:
+            if check_validity(footprint, possibilities):
+                possible_sets.append([possibilities, k])
+
 
 
 ###############################################################
