@@ -68,6 +68,9 @@ class PetriNet:
 
     def fire_transition(self, transition):
         for place in self.edges[transition]["before"]:
+            if place.mark == 0:
+                return
+        for place in self.edges[transition]["before"]:
             place.unmark()
 
         for place in self.edges[transition]["after"]:
@@ -87,7 +90,7 @@ class PetriNet:
 def read_from_file(filename):
     CASES = {}
     file = minidom.parse(
-        f"/Users/thomashebrard/code/dtu/02269_process_mining/assignment3/{filename}"
+        f"{filename}"
     )
 
     for model in file.getElementsByTagName("trace"):
@@ -277,8 +280,10 @@ def alpha(cases):
 
     pn = PetriNet()
     transition_idx = 1
-
-    for idx, set in enumerate(FINAL_SETS, 1):  # Already in the right order
+    places_idx = None
+    
+    for idx, set in enumerate(FINAL_SETS, 2):
+        places_idx = idx  # Already in the right order
         pn.add_place(idx)
         place = pn.places[idx].id
 
@@ -286,13 +291,17 @@ def alpha(cases):
         kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(
             vv, str
         ) else vv
+        
         for k in kk:
-            pn.add_transition(name=k, id=-transition_idx)
-            transition_idx += 1
+            if k not in pn.transitions:
+                pn.add_transition(name=k, id=-transition_idx)
+                transition_idx += 1
         for v in vv:
-            pn.add_transition(name=v, id=-transition_idx)
-            transition_idx += 1
+            if v not in pn.transitions:
+                pn.add_transition(name=v, id=-transition_idx)
+                transition_idx += 1
 
+        
         if len(kk) == 1:
             pn.add_edge(pn.transition_name_to_id(kk[0]), place)
             for v in vv:
@@ -301,6 +310,13 @@ def alpha(cases):
             for k in kk:
                 pn.add_edge(pn.transition_name_to_id(k), place)
             pn.add_edge(place, pn.transition_name_to_id(vv[0]))
+
+    pn.add_place(1)
+    pn.add_edge(pn.places[1].id,  pn.transition_name_to_id(FIRST_TRANSITION["concept:name"]))
+    pn.places[1].do_mark()
+
+    pn.add_place(places_idx + 1)
+    pn.add_edge(pn.transition_name_to_id(FINAL_TRANSITION["concept:name"]), pn.places[places_idx + 1].id)
 
     return pn
 
@@ -339,3 +355,5 @@ trace = [
 for a in trace:
     check_enabled(mined_model)
     mined_model.fire_transition(mined_model.transition_name_to_id(a))
+
+print('ok')
