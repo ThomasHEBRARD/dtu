@@ -31,10 +31,17 @@ class PetriNet:
         self.places = {}
         self.transitions = {}
         self.edges = {}
+        self.m, self.c, self.p = 0, 0, 0
+
+    def reset_petri_net(self):
+        self.m, self.c, self.p = 0, 0, 0
+        for place in self.places.values():
+            place.mark = 0
+
+        self.places[1].mark = len(self.edges[-1]["before"])
 
     def add_place(self, id):
         self.places[id] = Place(id, 0)
-        pass
 
     def add_transition(self, name, id):
         self.transitions[id] = Transition(id, name)
@@ -58,23 +65,26 @@ class PetriNet:
         return self.places[place].mark
 
     def is_enabled(self, transition):
+        has_to_return_false = False
         for place in self.edges[transition]["before"]:
             if place.mark == 0:
-                return False
-        return True
+                self.m += 1
+                has_to_return_false = True
 
-    def add_marking(self, place):
-        self.places[place].do_mark()
+        return True if not has_to_return_false else False
 
     def fire_transition(self, transition):
         for place in self.edges[transition]["before"]:
             if place.mark == 0:
                 return
+
         for place in self.edges[transition]["before"]:
             place.unmark()
+            self.c += 1
 
         for place in self.edges[transition]["after"]:
             place.do_mark()
+            self.p += 1
 
     def transition_name_to_id(self, name):
         for transition_obj in self.transitions.values():
@@ -148,6 +158,12 @@ def dependency_graph(log):
 #########                     ALPHA                    ########
 ###############################################################
 
+def check_validity(footprint, possibilities):
+        for k in possibilities:
+            for v in possibilities:
+                if footprint[k][v] != "#":
+                    return False
+        return True
 
 def alpha(cases):
     FIRST_TRANSITION = list(cases.values())[0][0]
@@ -211,13 +227,6 @@ def alpha(cases):
         for v in all_tasks:
             if footprint[k][v] == "->":
                 possible_sets.append([k, v])
-
-    def check_validity(footprint, possibilities):
-        for k in possibilities:
-            for v in possibilities:
-                if footprint[k][v] != "#":
-                    return False
-        return True
 
     # Simple with multiples
     for k in all_tasks:
@@ -323,39 +332,63 @@ def alpha(cases):
     return pn
 
 
-###############################################################
-#########                    TESTING                   ########
-###############################################################
+def fitness_token_replay(_log, _mined_model):
+    # _log = {"case_0": _log["case_0"]}
 
-mined_model = alpha(read_from_file("extension-log.xes"))
+    # n ?
+    unique_log = {}
+    for l in _log.values():
+        id = ""
+        for t in l:
+            id += t["concept:name"]
+
+        if id not in unique_log:
+            unique_log[id] = 1
+        else:
+            unique_log[id] += 1
+
+    m = []
+    n = []
+    c = []
+    p = []
+    r = []
+    for trace in _log.values():
+        id_trace = ""
+        for t in trace:
+            id_trace += t["concept:name"]
+            transition_id = _mined_model.transition_name_to_id(t["concept:name"])
+
+            if not _mined_model.is_enabled(transition_id):
+                pass
+            else:
+                _mined_model.fire_transition(transition_id)
+
+        m.append(_mined_model.m)
+        c.append(_mined_model.c)
+        p.append(_mined_model.p)
+        n.append(unique_log[id_trace])
+
+        _mined_model.reset_petri_net()
+
+        remaining_tokens = 0
+
+        for place_id in _mined_model.places.keys():
+            remaining_tokens += mined_model.get_tokens(place_id)
+        r.append(remaining_tokens)
+
+    s1 = sum(x * y for x, y in zip(n, m))
+    s2 = sum(x * y for x, y in zip(n, c))
+    s3 = sum(x * y for x, y in zip(n, r))
+    s4 = sum(x * y for x, y in zip(n, p))
+
+    f = 0.5 * (1 - s1 / s2) + 0.5 * (1 - s3 / s4)
+    return f
 
 
-def check_enabled(pn):
-    ts = [
-        "record issue",
-        "inspection",
-        "intervention authorization",
-        "action not required",
-        "work mandate",
-        "no concession",
-        "work completion",
-        "issue completion",
-    ]
-    for t in ts:
-        print(pn.is_enabled(pn.transition_name_to_id(t)))
-    print("")
+log = read_from_file("extension-log.xes")
+log_noisy = read_from_file("extension-log-noisy.xes")
 
+mined_model = alpha(log)
 
-trace = [
-    "record issue",
-    "inspection",
-    "intervention authorization",
-    "work mandate",
-    "work completion",
-    "issue completion",
-]
-for a in trace:
-    check_enabled(mined_model)
-    mined_model.fire_transition(mined_model.transition_name_to_id(a))
-
-print("ok")
+print(round(fitness_token_replay(log, mined_model), 5))
+print(round(fitness_token_replay(log_noisy, mined_model), 5))
