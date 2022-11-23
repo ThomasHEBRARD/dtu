@@ -1,3 +1,4 @@
+import time
 import datetime
 
 from itertools import combinations
@@ -307,7 +308,7 @@ def alpha(cases):
             if v not in pn.transitions:
                 pn.add_transition(name=v, id=-transition_idx)
                 transition_idx += 1
-
+        print(idx, kk, vv)
         if len(kk) == 1:
             pn.add_edge(pn.transition_name_to_id(kk[0]), place)
             for v in vv:
