@@ -141,6 +141,7 @@ def read_from_file(filename):
 
 def alpha(cases):
     import pprint
+
     # pprint.pprint(cases)
     FIRST_TRANSITION = list(cases.values())[0][0]
     FINAL_TRANSITION = list(cases.values())[-1][-1]
@@ -258,7 +259,7 @@ def alpha(cases):
 
     to_remove = []
     start = time.time()
-    print('possible set')
+    print("possible set")
     pprint.pprint(possible_sets)
     for i in range(len(possible_sets)):
         s = possible_sets[i]
@@ -417,6 +418,8 @@ trace = [
 for a in trace:
     check_enabled(mined_model, a)
     mined_model.fire_transition(mined_model.transition_name_to_id(a))
+
+
 def dependency_graph(log):
     for key, value in log.items():
         log[key] = [v["concept:name"] for v in value]
