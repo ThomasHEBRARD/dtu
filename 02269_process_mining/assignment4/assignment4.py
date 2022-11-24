@@ -1,4 +1,3 @@
-import time
 from itertools import product
 from xml.dom import minidom
 
