@@ -1,8 +1,7 @@
-import pprint
 import datetime
 
 from xml.dom import minidom
-from itertools import combinations
+from itertools import product
 
 ###############################################################
 #########                   PETRI NET                  ########
@@ -168,71 +167,55 @@ def alpha(cases):
     for k in sorted(d_g.keys()):
         causal[k] = set()
         for vk in sorted(d_g[k].keys()):
-            try:
-                if k in d_g[vk].keys():
-                    parallel[(k, vk)] = ""
-                else:
-                    causal[k].add(vk)
-            except:
+            if vk in d_g and k in d_g[vk].keys():
+                parallel[(k, vk)] = "2022"
+            else:
                 causal[k].add(vk)
 
-        if len(causal[k]) == 0:
-            del causal[k]
-
-    ############################ Look for causal and parallels ############################
-
-    def check_related(causal, parallel, elem_1, elem_2):
-        from itertools import product
-
-        S = set(product(elem_1, elem_2)).union(set(product(elem_1, elem_2)))
-        for pair in S:
-            if pair in parallel or pair in causal:
-                return True
-        return False
-
-    def identifiy_places(pairs, p):
-        for elem in pairs:
-            if p != elem and p[0].issubset(elem[0]) and p[1].issubset(elem[1]):
-                return False
-        return True
+    ##### Now create all the possible pairs of activites, by first taking the causal ####
 
     pairs = []
-    for key, element in causal.items():
-        for item in element:
-            pairs.append(({key}, {item}))
+    for k, v in causal.items():
+        for kv in v:
+            pairs.append(({k}, {kv}))
 
     for i in range(0, len(pairs)):
-        p1 = pairs[i]
+        pair1 = pairs[i]
         for j in range(i, len(pairs)):
-            p2 = pairs[j]
+            pair2 = pairs[j]
 
-            if p1 == p2:
+            #### Check if the first pair is not a subset of the second one.
+            if not (pair1[0].issubset(pair2[0]) or pair1[1].issubset(pair2[1])):
                 continue
 
-            # Check whether items in p1 are present in p2
-            is_subset = p1[0].issubset(p2[0]) or p1[1].issubset(p2[1])
-            if not is_subset:
+            ##### Create all possible combination, and check if it alreay exists in the causal
+            # or the parallels activites. If it does, that means that its valid.
+            relation = False
+            for pair in product(pair1[0], pair2[0]):
+                if pair in parallel or pair in causal:
+                    relation = True
+
+            for pair in product(pair1[1], pair2[1]):
+                if pair in parallel or pair in causal:
+                    relation = True
+
+            if relation:
                 continue
 
-            is_related = check_related(causal, parallel, p1[0], p2[0]) or check_related(
-                causal, parallel, p1[1], p2[1]
-            )
+            ## Get the union of each member of pair to have a maximum set
+            new_pair = (pair1[0] | pair2[0], pair1[1] | pair2[1])
 
-            if is_related:
-                continue
-
-            new_pair = (p1[0] | p2[0], p1[1] | p2[1])
+            ### Don't take it if already exists
             if new_pair not in pairs:
                 pairs.append(new_pair)
 
-    # Getting all task name for the transitions
+    # Getting all tasks name for the transitions
     all_tasks = list(d_g.keys())
 
     for v in d_g.values():
         all_tasks += list(v.keys())
-    
-    all_tasks = list(set(all_tasks))
 
+    all_tasks = list(set(all_tasks))
 
     #### Instance petri net ####
     pn = PetriNet()
@@ -246,11 +229,25 @@ def alpha(cases):
     for idx in range(1, len(all_tasks) + 1):
         pn.add_transition(all_tasks[idx - 1], -idx)
 
-    # Filter the pairs to get only the on that correspond to a place
-    places_to_add = filter(lambda p: identifiy_places(pairs, p), pairs)
+    ####### Drop non maximum sets ######
 
-    # Adding all places
-    for pair in places_to_add:
+    def drop_non_maximum_sets(pairs, p):
+        for elem in pairs:
+            # Compare the current pair to all of the possible pairs, and if it is a subset, remove it
+            # For example, ({'accept'}, {'send decision e-mail'}) compared to ({'reject', 'accept'}, {'send decision e-mail'})
+            # has to be removed because it is not a maximum set, it would have doubles.
+            if p != elem and p[0].issubset(elem[0]) and p[1].issubset(elem[1]):
+                return False
+        return True
+
+    # Filter the pairs to get only the on that correspond to a place
+    PLACES = filter(
+        lambda current_pair: drop_non_maximum_sets(pairs, current_pair), pairs
+    )
+
+    ######## Creating places ########
+
+    for pair in PLACES:
         place_id = len(pn.places) + 1
         pn.add_place(place_id)
 
@@ -276,52 +273,52 @@ def alpha(cases):
 #########                    TESTING                   ########
 ###############################################################
 
-mined_model = alpha(read_from_file("extension-log.xes"))
-# mined_model = alpha(read_from_file("loan-process.xes"))
+# mined_model = alpha(read_from_file("extension-log.xes"))
+mined_model = alpha(read_from_file("loan-process.xes"))
 
 
 def check_enabled(pn, a):
-    ts = [
-        "record issue",
-        "inspection",
-        "intervention authorization",
-        "action not required",
-        "work mandate",
-        "no concession",
-        "work completion",
-        "issue completion",
-    ]
     # ts = [
-    #     "register application",
-    #     "check credit",
-    #     "calculate capacity",
-    #     "check system",
-    #     "accept",
-    #     "reject",
-    #     "send decision e-mail",
+    #     "record issue",
+    #     "inspection",
+    #     "intervention authorization",
+    #     "action not required",
+    #     "work mandate",
+    #     "no concession",
+    #     "work completion",
+    #     "issue completion",
     # ]
+    ts = [
+        "register application",
+        "check credit",
+        "calculate capacity",
+        "check system",
+        "accept",
+        "reject",
+        "send decision e-mail",
+    ]
     for t in ts:
         print(pn.is_enabled(pn.transition_name_to_id(t)))
         pass
     print("")
 
 
-trace = [
-    "record issue",
-    "inspection",
-    "intervention authorization",
-    "work mandate",
-    "work completion",
-    "issue completion",
-]
 # trace = [
-#     "register application",
-#     "check credit",
-#     "check system",
-#     "calculate capacity",
-#     "accept",
-#     "send decision e-mail",
+#     "record issue",
+#     "inspection",
+#     "intervention authorization",
+#     "work mandate",
+#     "work completion",
+#     "issue completion",
 # ]
+trace = [
+    "register application",
+    "check credit",
+    "check system",
+    "calculate capacity",
+    "accept",
+    "send decision e-mail",
+]
 for a in trace:
     check_enabled(mined_model, a)
     mined_model.fire_transition(mined_model.transition_name_to_id(a))
