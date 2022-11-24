@@ -1,8 +1,7 @@
-import time
 import datetime
 
-from itertools import combinations
 from xml.dom import minidom
+from itertools import product
 
 ###############################################################
 #########                   PETRI NET                  ########
@@ -88,6 +87,22 @@ class PetriNet:
                 return transition_obj.id
 
 
+def dependency_graph(log):
+    for key, value in log.items():
+        log[key] = [v["concept:name"] for v in value]
+
+    TEMP = {}
+    for tasks in log.values():
+        for i in range(len(tasks) - 1):
+            if tasks[i] not in TEMP:
+                TEMP[tasks[i]] = {tasks[i + 1]: 1}
+            elif tasks[i + 1] not in TEMP[tasks[i]]:
+                TEMP[tasks[i]][tasks[i + 1]] = 1
+            else:
+                TEMP[tasks[i]][tasks[i + 1]] += 1
+    return TEMP
+
+
 ###############################################################
 #########                 READ_FROM_FILE               ########
 ###############################################################
@@ -140,209 +155,115 @@ def read_from_file(filename):
 
 
 def alpha(cases):
-    import pprint
-
-    # pprint.pprint(cases)
     FIRST_TRANSITION = list(cases.values())[0][0]
     FINAL_TRANSITION = list(cases.values())[-1][-1]
 
-    footprint = {}
+    d_g = dependency_graph(cases)
 
-    #################### NORMAL ORDER ####################
-    start = time.time()
-    for case in cases.values():
+    ############################ Look for causal and parallels ############################
 
-        for idx in range(len(case) - 1):
-            task = case[idx]["concept:name"]
-            next_task = case[idx + 1]["concept:name"]
+    causal, parallel = {}, {}
 
-            if task not in footprint:
-                footprint[task] = {next_task: "->"}
+    for k in sorted(d_g.keys()):
+        causal[k] = set()
+        for vk in sorted(d_g[k].keys()):
+            if vk in d_g and k in d_g[vk].keys():
+                parallel[(k, vk)] = "2022"
             else:
-                footprint[task][next_task] = "->"
+                causal[k].add(vk)
 
-            if (s := case[-1]["concept:name"]) not in footprint:
-                footprint[s] = {}
+    ##### Now create all the possible pairs of activites, by first taking the causal ####
 
-    # print("normal order", time.time() - start)
-    ############################################################
+    pairs = []
+    for k, v in causal.items():
+        for kv in v:
+            pairs.append(({k}, {kv}))
 
-    #################### REVERSE ORDER ########################
-    start = time.time()
-    for case in cases.values():
-        for idx in range(1, len(case)):
-            idx = -idx
-            task = case[idx]["concept:name"]
-            prev_task = case[idx - 1]["concept:name"]
+    for i in range(0, len(pairs)):
+        pair1 = pairs[i]
+        for j in range(i, len(pairs)):
+            pair2 = pairs[j]
 
-            footprint[task][prev_task] = "<-"
+            #### Check if the first pair is not a subset of the second one.
+            if not (pair1[0].issubset(pair2[0]) or pair1[1].issubset(pair2[1])):
+                continue
 
-    # print("reverse order", time.time() - start)
-    ############################################################
+            ##### Create all possible combination, and check if it alreay exists in the causal
+            # or the parallels activites. If it does, that means that its valid.
+            relation = False
+            for pair in product(pair1[0], pair2[0]):
+                if pair in parallel or pair in causal:
+                    relation = True
 
-    all_tasks = list(footprint.keys())
+            for pair in product(pair1[1], pair2[1]):
+                if pair in parallel or pair in causal:
+                    relation = True
 
-    #################### FILL EMPTY SPOTS ####################
-    start = time.time()
-    for f in footprint.values():
-        for task in all_tasks:
-            if task not in f:
-                f[task] = "#"
-    # print("fill empty spots", time.time() - start)
+            if relation:
+                continue
 
-    #################### REMOVE DOUBLES ####################
-    start = time.time()
+            ## Get the union of each member of pair to have a maximum set
+            new_pair = (pair1[0] | pair2[0], pair1[1] | pair2[1])
 
-    for k in all_tasks:
-        for v in all_tasks:
-            if (
-                footprint[k][v] == footprint[v][k]
-                and footprint[k][v] != "#"
-                and footprint[v][k] != "#"
-            ):
-                footprint[v][k] = "||"
-                footprint[k][v] = "||"
-    # print("remove doubles", time.time() - start)
+            ### Don't take it if already exists
+            if new_pair not in pairs:
+                pairs.append(new_pair)
 
-    #################### POSSIBLE SETS ####################
+    # Getting all tasks name for the transitions
+    all_tasks = list(d_g.keys())
 
-    possible_sets = []
-    start = time.time()
-    # Simple with simple
-    for k in all_tasks:
-        for v in all_tasks:
-            if footprint[k][v] == "->":
-                possible_sets.append([k, v])
-    # print("possible sets", time.time() - start)
+    for v in d_g.values():
+        all_tasks += list(v.keys())
 
-    def check_validity(footprint, possibilities):
-        for k in possibilities:
-            for v in possibilities:
-                if footprint[k][v] != "#":
-                    return False
-        return True
+    all_tasks = list(set(all_tasks))
 
-    start = time.time()
-    # Simple with multiples
-    for k in all_tasks:
-        candidates = []
-        for v in all_tasks:
-            if footprint[k][v] == "->":
-                candidates.append(v)
-        all_possibilities = [
-            list(com)
-            for sub in range(1, len(all_tasks))
-            for com in combinations(candidates, sub + 1)
-        ]
-        for possibilities in all_possibilities:
-            if check_validity(footprint, possibilities):
-                possible_sets.append([k, possibilities])
-    # print("same with multiples", time.time() - start)
-    start = time.time()
-    # SAME IN REVERSE
-    for k in all_tasks:
-        candidates = []
-        for v in all_tasks:
-            if footprint[k][v] == "<-":
-                candidates.append(v)
-        all_possibilities = [
-            list(com)
-            for sub in range(1, len(all_tasks))
-            for com in combinations(candidates, sub + 1)
-        ]
-        for possibilities in all_possibilities:
-            if check_validity(footprint, possibilities):
-                possible_sets.append([possibilities, k])
-    # print("same in reverse", time.time() - start)
-
-    ###################### 5: DROP NON MAXIMUM SETS #####################
-
-    to_remove = []
-    start = time.time()
-    print("possible set")
-    pprint.pprint(possible_sets)
-    for i in range(len(possible_sets)):
-        s = possible_sets[i]
-        kk, vv = s
-        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(
-            vv, str
-        ) else vv
-        sets = [
-            list(com)
-            for sub in range(1, len(all_tasks))
-            for com in combinations(kk + vv, sub + 1)
-        ]
-
-        for set in sets:
-            if set in possible_sets[:i] + possible_sets[i + 1 :]:
-                to_remove.append(set)
-    # print("drop non maximum set", time.time() - start)
-
-    FINAL_SETS = []
-    for pos in possible_sets:
-        if pos not in to_remove:
-            FINAL_SETS.append(pos)
-
-    ############################ 6: CREATE PETRI NET ############################
-
+    #### Instance petri net ####
     pn = PetriNet()
-    transition_idx = 1
-    place_idx = None
-    start = time.time()
-    already_created_places = {}
 
-    for idx, set in enumerate(FINAL_SETS, 2):
-        kk, vv = set
-        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(
-            vv, str
-        ) else vv
-
-        vv.sort()
-        # print(idx, kk, vv)
-
-        if str(vv) not in already_created_places.keys():
-            pn.add_place(idx)
-            already_created_places[str(vv)] = idx
-
-        place_idx = already_created_places[str(vv)]
-        place = pn.places[place_idx].id
-
-        transition_before = []
-        transition_after = []
-
-        for k in kk:
-            if k not in [t.name for t in pn.transitions.values()]:
-                pn.add_transition(name=k, id=-transition_idx)
-                transition_before.append(-transition_idx)
-                transition_idx += 1
-
-        for v in vv:
-            if v not in [t.name for t in pn.transitions.values()]:
-                pn.add_transition(name=v, id=-transition_idx)
-                transition_after.append(-transition_idx)
-                transition_idx += 1
-
-        for k in kk:
-            pn.add_edge(source=pn.transition_name_to_id(k), target=place)
-
-        for v in vv:
-            pn.add_edge(source=place, target=pn.transition_name_to_id(v))
-
-    # print("create petri net", time.time() - start)
-
-    # Adding first place and giving it a token
+    #### Adding source and giving it a token ####
     pn.add_place(1)
-    pn.add_edge(
-        pn.places[1].id, pn.transition_name_to_id(FIRST_TRANSITION["concept:name"])
-    )
-
     pn.places[1].do_mark()
 
-    # Adding end place
-    pn.add_place(place_idx + 1)
+    # Creating all transitions, starts from 1
+
+    for idx in range(1, len(all_tasks) + 1):
+        pn.add_transition(all_tasks[idx - 1], -idx)
+
+    ####### Drop non maximum sets ######
+
+    def drop_non_maximum_sets(pairs, p):
+        for elem in pairs:
+            # Compare the current pair to all of the possible pairs, and if it is a subset, remove it
+            # For example, ({'accept'}, {'send decision e-mail'}) compared to ({'reject', 'accept'}, {'send decision e-mail'})
+            # has to be removed because it is not a maximum set, it would have doubles.
+            if p != elem and p[0].issubset(elem[0]) and p[1].issubset(elem[1]):
+                return False
+        return True
+
+    # Filter the pairs to get only the on that correspond to a place
+    PLACES = filter(
+        lambda current_pair: drop_non_maximum_sets(pairs, current_pair), pairs
+    )
+
+    ######## Creating places ########
+
+    for pair in PLACES:
+        place_id = len(pn.places) + 1
+        pn.add_place(place_id)
+
+        for before in pair[0]:
+            pn.add_edge(pn.transition_name_to_id(before), place_id)
+        for after in pair[1]:
+            pn.add_edge(place_id, pn.transition_name_to_id(after))
+
+    # Add edge from first place to first transition
+    pn.add_edge(1, pn.transition_name_to_id(FIRST_TRANSITION["concept:name"]))
+
+    # Add sink and last transition leading to this place
+    pn.add_place(len(pn.places) + 1)
     pn.add_edge(
         pn.transition_name_to_id(FINAL_TRANSITION["concept:name"]),
-        pn.places[place_idx + 1].id,
+        pn.places[place_id + 1].id,
     )
 
     return pn
@@ -354,23 +275,6 @@ def alpha(cases):
 
 # mined_model = alpha(read_from_file("extension-log.xes"))
 mined_model = alpha(read_from_file("loan-process.xes"))
-
-import pprint
-
-t = {}
-for k, v in mined_model.edges.items():
-    if k < 0:
-        t[k] = {
-            "after": [p.id for p in v["after"]],
-            "before": [p.id for p in v["before"]],
-        }
-    else:
-        t[k] = {
-            "after": [t.name for t in v["after"]],
-            "before": [t.name for t in v["before"]],
-        }
-
-# pprint.pprint(t)
 
 
 def check_enabled(pn, a):
@@ -394,7 +298,7 @@ def check_enabled(pn, a):
         "send decision e-mail",
     ]
     for t in ts:
-        # print(pn.is_enabled(pn.transition_name_to_id(t)))
+        print(pn.is_enabled(pn.transition_name_to_id(t)))
         pass
     print("")
 
@@ -418,22 +322,3 @@ trace = [
 for a in trace:
     check_enabled(mined_model, a)
     mined_model.fire_transition(mined_model.transition_name_to_id(a))
-
-
-def dependency_graph(log):
-    for key, value in log.items():
-        log[key] = [v["concept:name"] for v in value]
-
-    TEMP = {}
-    for tasks in log.values():
-        for i in range(len(tasks) - 1):
-            if tasks[i] not in TEMP:
-                TEMP[tasks[i]] = {tasks[i + 1]: 1}
-            elif tasks[i + 1] not in TEMP[tasks[i]]:
-                TEMP[tasks[i]][tasks[i + 1]] = 1
-            else:
-                TEMP[tasks[i]][tasks[i + 1]] += 1
-    return TEMP
-
-
-d_g = dependency_graph(read_from_file("loan-process.xes"))
