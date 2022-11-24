@@ -269,20 +269,8 @@ def alpha(cases):
 
 def fitness_token_replay(_log, _mined_model):
     _log_values = _log.values()
-    unique_log = {}
 
-    for trace in _log_values:
-        id_trace = ""
-
-        for t in trace:
-            id_trace += t if type(t) == type("") else t["concept:name"]
-
-        if id_trace not in unique_log:
-            unique_log[id_trace] = 1
-        else:
-            unique_log[id_trace] += 1
-
-    m, n, c, p, r = [], [], [], [], []
+    m, c, p, r = [], [], [], []
 
     for trace in _log_values:
         id_trace = ""
@@ -296,30 +284,26 @@ def fitness_token_replay(_log, _mined_model):
             )
 
         sink = _mined_model.places[len(_mined_model.places)]
-
-        # Pull end token: If not there, add a missing token and consume it
+        
+        # Pull end token: 
         if sink.mark == 0:
+            # If not there, add a missing token and consume it
             _mined_model.m += 1
             _mined_model.c += 1
-        else:
-            for _ in range(sink.mark):
-                _mined_model.c += 1
-                sink.unmark()
+        elif sink.mark >= 1:
+            # Consume one and the rest will be remaining tokens
+            sink.unmark()
+            _mined_model.c += 1
+
 
         m.append(_mined_model.m)
         r.append(_mined_model.get_remaining_tokens())
         c.append(_mined_model.c)
         p.append(_mined_model.p)
-        n.append(unique_log[id_trace])
 
         _mined_model.reset_petri_net()
 
-    s1 = sum(x * y for x, y in zip(n, m))
-    s2 = sum(x * y for x, y in zip(n, c))
-    s3 = sum(x * y for x, y in zip(n, r))
-    s4 = sum(x * y for x, y in zip(n, p))
-
-    f = 0.5 * (1 - (s1 / s2)) + 0.5 * (1 - (s3 / s4))
+    f = 0.5 * (1 - (sum(m) / sum(c))) + 0.5 * (1 - (sum(r) / sum(p)))
 
     return f
 
