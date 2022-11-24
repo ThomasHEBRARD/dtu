@@ -1,7 +1,5 @@
 import time
-import datetime
-
-from itertools import combinations
+from itertools import product
 from xml.dom import minidom
 
 ###############################################################
@@ -32,14 +30,21 @@ class PetriNet:
         self.places = {}
         self.transitions = {}
         self.edges = {}
-        self.m, self.c, self.p = 0, 0, 0
+        self.m, self.r, self.c, self.p = 0, 0, 0, 1
 
     def reset_petri_net(self):
-        self.m, self.c, self.p = 0, 0, 0
+        self.m, self.r, self.c, self.p = 0, 0, 0, 1
+        # Remove all tokens
         for place in self.places.values():
             place.mark = 0
 
-        self.places[1].mark = len(self.edges[-1]["before"])
+        # Give token to source
+        self.places[1].do_mark()
+
+    def get_remaining_tokens(self):
+        for place in self.places.values():
+            self.r += place.mark
+        return self.r
 
     def add_place(self, id):
         self.places[id] = Place(id, 0)
@@ -53,90 +58,55 @@ class PetriNet:
         if target not in self.edges:
             self.edges[target] = {"before": [], "after": []}
 
-        self.edges[source]["after"].append(
-            self.places[target] if source < 0 else self.transitions[target]
-        )
-        self.edges[target]["before"].append(
-            self.places[source] if source > 0 else self.transitions[source]
-        )
+        if source < 0:
+            self.edges[source]["after"].append(self.places[target])
+            self.edges[source]["after"] = list(set(self.edges[source]["after"]))
+
+            self.edges[target]["before"].append(self.transitions[source])
+            self.edges[target]["before"] = list(set(self.edges[target]["before"]))
+        else:
+            self.edges[source]["after"].append(self.transitions[target])
+            self.edges[source]["after"] = list(set(self.edges[source]["after"]))
+
+            self.edges[target]["before"].append(self.places[source])
+            self.edges[target]["before"] = list(set(self.edges[target]["before"]))
 
         return self
 
     def get_tokens(self, place):
         return self.places[place].mark
 
-    def is_enabled(self, transition):
+    def is_enabled(self, transition, fire_if_not_enabled=False):
         has_to_return_false = False
         for place in self.edges[transition]["before"]:
-            if place.mark == 0:
-                self.m += 1
+            if place.mark <= 0:
                 has_to_return_false = True
 
-        return True if not has_to_return_false else False
+                if fire_if_not_enabled:
+                    # Still fire, then we mark it, and add it to missing token.
+                    place.do_mark()
+                    self.m += 1
+                    has_to_return_false = False
 
-    def fire_transition(self, transition):
-        for place in self.edges[transition]["before"]:
-            if place.mark == 0:
-                return
+        if has_to_return_false:
+            return False
+        else:
+            return True
 
-        for place in self.edges[transition]["before"]:
-            place.unmark()
-            self.c += 1
+    def fire_transition(self, transition, fire_if_not_enabled=False):
+        if self.is_enabled(transition, fire_if_not_enabled):
+            for place in self.edges[transition]["before"]:
+                place.unmark()
+                self.c += 1
 
-        for place in self.edges[transition]["after"]:
-            place.do_mark()
-            self.p += 1
+            for place in self.edges[transition]["after"]:
+                place.do_mark()
+                self.p += 1
 
     def transition_name_to_id(self, name):
         for transition_obj in self.transitions.values():
             if transition_obj.name == name:
                 return transition_obj.id
-
-
-###############################################################
-#########                 READ_FROM_FILE               ########
-###############################################################
-
-
-def read_from_file(filename):
-    CASES = {}
-    file = minidom.parse(f"{filename}")
-
-    for model in file.getElementsByTagName("trace"):
-        case = model.getElementsByTagName("string")[0].attributes["value"].value
-        if case not in CASES:
-            CASES[case] = []
-
-        for event in model.getElementsByTagName("event"):
-            event_data = {
-                "org:resource": None,
-                "concept:name": None,
-                "cost": None,
-                "time:timestamp": None,
-            }
-            # strings:
-            for ev in event.getElementsByTagName("string"):
-                if ev.attributes["key"].value in event_data:
-                    event_data[ev.attributes["key"].value] = ev.attributes[
-                        "value"
-                    ].value
-            # ints
-            for ev in event.getElementsByTagName("int"):
-                if ev.attributes["key"].value in event_data:
-                    event_data[ev.attributes["key"].value] = int(
-                        ev.attributes["value"].value
-                    )
-
-            date = datetime.datetime.strptime(
-                event.getElementsByTagName("date")[0].attributes["value"].value,
-                "%Y-%m-%dT%H:%M:%S%z",
-            )
-            date = date.replace(tzinfo=None)
-            event_data[
-                event.getElementsByTagName("date")[0].attributes["key"].value
-            ] = date
-            CASES[case].append(event_data)
-    return CASES
 
 
 def dependency_graph(log):
@@ -156,235 +126,207 @@ def dependency_graph(log):
 
 
 ###############################################################
+#########                 READ_FROM_FILE               ########
+###############################################################
+
+
+def read_from_file(filename):
+    CASES = {}
+    file = minidom.parse(f"{filename}")
+
+    for model in file.getElementsByTagName("trace"):
+        case = model.getElementsByTagName("string")[0].attributes["value"].value
+        if case not in CASES:
+            CASES[case] = []
+
+        for event in model.getElementsByTagName("event"):
+            for ev in event.getElementsByTagName("string"):
+                if ev.attributes["key"].value == "concept:name":
+                    CASES[case].append({"concept:name": ev.attributes["value"].value})
+
+    return CASES
+
+
+###############################################################
 #########                     ALPHA                    ########
 ###############################################################
 
-def check_validity(footprint, possibilities):
-        for k in possibilities:
-            for v in possibilities:
-                if footprint[k][v] != "#":
-                    return False
-        return True
 
 def alpha(cases):
     FIRST_TRANSITION = list(cases.values())[0][0]
     FINAL_TRANSITION = list(cases.values())[-1][-1]
 
-    footprint = {}
+    d_g = dependency_graph(cases)
 
-    #################### NORMAL ORDER ####################
+    ############################ Look for causal and parallels ############################
 
-    for case in cases.values():
-        for idx in range(len(case) - 1):
-            task = case[idx]["concept:name"]
-            next_task = case[idx + 1]["concept:name"]
+    causal, parallel = {}, {}
 
-            if task not in footprint:
-                footprint[task] = {next_task: "->"}
+    for k in sorted(d_g.keys()):
+        causal[k] = set()
+        for vk in sorted(d_g[k].keys()):
+            if vk in d_g and k in d_g[vk].keys():
+                parallel[(k, vk)] = "2022"
             else:
-                footprint[task][next_task] = "->"
+                causal[k].add(vk)
 
-            if (s := case[-1]["concept:name"]) not in footprint:
-                footprint[s] = {}
-    ############################################################
+    ##### Now create all the possible pairs of activites, by first taking the causal ####
 
-    #################### REVERSE ORDER ########################
+    pairs = []
+    for k, v in causal.items():
+        for kv in v:
+            pairs.append(({k}, {kv}))
 
-    for case in cases.values():
-        for idx in range(1, len(case)):
-            idx = -idx
-            task = case[idx]["concept:name"]
-            prev_task = case[idx - 1]["concept:name"]
+    for i in range(0, len(pairs)):
+        pair1 = pairs[i]
+        for j in range(i, len(pairs)):
+            pair2 = pairs[j]
 
-            footprint[task][prev_task] = "<-"
-    ############################################################
+            #### Check if the first pair is not a subset of the second one.
+            if not (pair1[0].issubset(pair2[0]) or pair1[1].issubset(pair2[1])):
+                continue
 
-    all_tasks = list(footprint.keys())
+            ##### Create all possible combination, and check if it alreay exists in the causal
+            # or the parallels activites. If it does, that means that its valid.
+            relation = False
+            for pair in product(pair1[0], pair2[0]):
+                if pair in parallel or pair in causal:
+                    relation = True
 
-    #################### FILL EMPTY SPOTS ####################
-    for f in footprint.values():
-        for task in all_tasks:
-            if task not in f:
-                f[task] = "#"
+            for pair in product(pair1[1], pair2[1]):
+                if pair in parallel or pair in causal:
+                    relation = True
 
-    #################### REMOVE DOUBLES ####################
+            if relation:
+                continue
 
-    for k in all_tasks:
-        for v in all_tasks:
-            if (
-                footprint[k][v] == footprint[v][k]
-                and footprint[k][v] != "#"
-                and footprint[v][k] != "#"
-            ):
-                footprint[v][k] = "||"
-                footprint[k][v] = "||"
+            ## Get the union of each member of pair to have a maximum set
+            new_pair = (pair1[0] | pair2[0], pair1[1] | pair2[1])
 
-    #################### POSSIBLE SETS ####################
+            ### Don't take it if already exists
+            if new_pair not in pairs:
+                pairs.append(new_pair)
 
-    possible_sets = []
+    # Getting all tasks name for the transitions
+    all_tasks = list(d_g.keys())
 
-    # Simple with simple
-    for k in all_tasks:
-        for v in all_tasks:
-            if footprint[k][v] == "->":
-                possible_sets.append([k, v])
+    for v in d_g.values():
+        all_tasks += list(v.keys())
 
-    # Simple with multiples
-    for k in all_tasks:
-        candidates = []
-        for v in all_tasks:
-            if footprint[k][v] == "->":
-                candidates.append(v)
-        all_possibilities = [
-            list(com)
-            for sub in range(1, len(all_tasks))
-            for com in combinations(candidates, sub + 1)
-        ]
-        for possibilities in all_possibilities:
-            if check_validity(footprint, possibilities):
-                possible_sets.append([k, possibilities])
+    all_tasks = list(set(all_tasks))
 
-    # SAME IN REVERSE
-    for k in all_tasks:
-        candidates = []
-        for v in all_tasks:
-            if footprint[k][v] == "<-":
-                candidates.append(v)
-        all_possibilities = [
-            list(com)
-            for sub in range(1, len(all_tasks))
-            for com in combinations(candidates, sub + 1)
-        ]
-        for possibilities in all_possibilities:
-            if check_validity(footprint, possibilities):
-                possible_sets.append([possibilities, k])
-
-    ###################### 5: DROP NON MAXIMUM SETS #####################
-
-    to_remove = []
-
-    for i in range(len(possible_sets)):
-        s = possible_sets[i]
-        kk, vv = s
-        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(
-            vv, str
-        ) else vv
-        sets = [
-            list(com)
-            for sub in range(1, len(all_tasks))
-            for com in combinations(kk + vv, sub + 1)
-        ]
-
-        for set in sets:
-            if set in possible_sets[:i] + possible_sets[i + 1 :]:
-                to_remove.append(set)
-
-    FINAL_SETS = []
-    for pos in possible_sets:
-        if pos not in to_remove:
-            FINAL_SETS.append(pos)
-
-    ############################ 6: CREATE PETRI NET ############################
-
+    #### Instance petri net ####
     pn = PetriNet()
-    transition_idx = 1
-    places_idx = None
 
-    for idx, set in enumerate(FINAL_SETS, 2):
-        places_idx = idx  # Already in the right order
-        pn.add_place(idx)
-        place = pn.places[idx].id
-
-        kk, vv = set
-        kk, vv = [kk] if isinstance(kk, str) else kk, [vv] if isinstance(
-            vv, str
-        ) else vv
-
-        for k in kk:
-            if k not in pn.transitions:
-                pn.add_transition(name=k, id=-transition_idx)
-                transition_idx += 1
-        for v in vv:
-            if v not in pn.transitions:
-                pn.add_transition(name=v, id=-transition_idx)
-                transition_idx += 1
-        print(idx, kk, vv)
-        if len(kk) == 1:
-            pn.add_edge(pn.transition_name_to_id(kk[0]), place)
-            for v in vv:
-                pn.add_edge(place, pn.transition_name_to_id(v))
-        else:
-            for k in kk:
-                pn.add_edge(pn.transition_name_to_id(k), place)
-            pn.add_edge(place, pn.transition_name_to_id(vv[0]))
-
+    #### Adding source and giving it a token ####
     pn.add_place(1)
-    pn.add_edge(
-        pn.places[1].id, pn.transition_name_to_id(FIRST_TRANSITION["concept:name"])
-    )
     pn.places[1].do_mark()
 
-    pn.add_place(places_idx + 1)
+    # Creating all transitions, starts from 1
+
+    for idx in range(1, len(all_tasks) + 1):
+        pn.add_transition(all_tasks[idx - 1], -idx)
+
+    ####### Drop non maximum sets ######
+
+    def drop_non_maximum_sets(pairs, p):
+        for elem in pairs:
+            # Compare the current pair to all of the possible pairs, and if it is a subset, remove it
+            # For example, ({'accept'}, {'send decision e-mail'}) compared to ({'reject', 'accept'}, {'send decision e-mail'})
+            # has to be removed because it is not a maximum set, it would have doubles.
+            if p != elem and p[0].issubset(elem[0]) and p[1].issubset(elem[1]):
+                return False
+        return True
+
+    # Filter the pairs to get only the on that correspond to a place
+    PLACES = filter(
+        lambda current_pair: drop_non_maximum_sets(pairs, current_pair), pairs
+    )
+
+    ######## Creating places ########
+
+    for pair in PLACES:
+        place_id = len(pn.places) + 1
+        pn.add_place(place_id)
+
+        for before in pair[0]:
+            pn.add_edge(pn.transition_name_to_id(before), place_id)
+        for after in pair[1]:
+            pn.add_edge(place_id, pn.transition_name_to_id(after))
+
+    # Add edge from first place to first transition
+    pn.add_edge(1, pn.transition_name_to_id(FIRST_TRANSITION["concept:name"]))
+
+    # Add sink and last transition leading to this place
+    pn.add_place(len(pn.places) + 1)
     pn.add_edge(
         pn.transition_name_to_id(FINAL_TRANSITION["concept:name"]),
-        pn.places[places_idx + 1].id,
+        pn.places[place_id + 1].id,
     )
 
     return pn
 
 
 def fitness_token_replay(_log, _mined_model):
-    # _log = {"case_0": _log["case_0"]}
-
-    # n ?
+    _log_values = _log.values()
     unique_log = {}
-    for l in _log.values():
-        id = ""
-        for t in l:
-            id += t["concept:name"]
 
-        if id not in unique_log:
-            unique_log[id] = 1
+    for trace in _log_values:
+        id_trace = ""
+
+        for t in trace:
+            id_trace += t if type(t) == type("") else t["concept:name"]
+
+        if id_trace not in unique_log:
+            unique_log[id_trace] = 1
         else:
-            unique_log[id] += 1
+            unique_log[id_trace] += 1
 
-    m = []
-    n = []
-    c = []
-    p = []
-    r = []
-    for trace in _log.values():
+    m, n, c, p, r = [], [], [], [], []
+
+    for trace in _log_values:
         id_trace = ""
         for t in trace:
-            id_trace += t["concept:name"]
-            transition_id = _mined_model.transition_name_to_id(t["concept:name"])
+            if "concept:name" in t:
+                t = t["concept:name"]
+            id_trace += t
 
-            if not _mined_model.is_enabled(transition_id):
-                pass
-            else:
-                _mined_model.fire_transition(transition_id)
+            _mined_model.fire_transition(
+                _mined_model.transition_name_to_id(t), fire_if_not_enabled=True
+            )
+
+        sink = _mined_model.places[len(_mined_model.places)]
+
+        # Pull end token: If not there, add a missing token and consume it
+        if sink.mark == 0:
+            _mined_model.m += 1
+            _mined_model.c += 1
+        else:
+            for _ in range(sink.mark):
+                _mined_model.c += 1
+                sink.unmark()
 
         m.append(_mined_model.m)
+        r.append(_mined_model.get_remaining_tokens())
         c.append(_mined_model.c)
         p.append(_mined_model.p)
         n.append(unique_log[id_trace])
 
         _mined_model.reset_petri_net()
 
-        remaining_tokens = 0
-
-        for place_id in _mined_model.places.keys():
-            remaining_tokens += mined_model.get_tokens(place_id)
-        r.append(remaining_tokens)
-
     s1 = sum(x * y for x, y in zip(n, m))
     s2 = sum(x * y for x, y in zip(n, c))
     s3 = sum(x * y for x, y in zip(n, r))
     s4 = sum(x * y for x, y in zip(n, p))
 
-    f = 0.5 * (1 - s1 / s2) + 0.5 * (1 - s3 / s4)
+    f = 0.5 * (1 - (s1 / s2)) + 0.5 * (1 - (s3 / s4))
+
     return f
 
+
+###############################################################
+#########                    TESTING                   ########
+###############################################################
 
 log = read_from_file("extension-log.xes")
 log_noisy = read_from_file("extension-log-noisy.xes")
