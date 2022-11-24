@@ -1,5 +1,7 @@
 from itertools import product
-from xml.dom import minidom
+
+# from xml.dom import minidom
+import xml.etree.ElementTree as ET
 
 ###############################################################
 #########                   PETRI NET                  ########
@@ -130,18 +132,22 @@ def dependency_graph(log):
 
 
 def read_from_file(filename):
+    context = ET.iterparse(open(filename, "rb"), events=["start", "end"])
     CASES = {}
-    file = minidom.parse(f"{filename}")
+    current_case = None
+    for event, elem in context:
+        if event == "start":
+            if elem.get("key") == "concept:name" and "case_" in elem.get("value"):
+                if elem.get("value") not in CASES:
+                    current_case = elem.get("value")
+                    CASES[elem.get("value")] = []
 
-    for model in file.getElementsByTagName("trace"):
-        case = model.getElementsByTagName("string")[0].attributes["value"].value
-        if case not in CASES:
-            CASES[case] = []
-
-        for event in model.getElementsByTagName("event"):
-            for ev in event.getElementsByTagName("string"):
-                if ev.attributes["key"].value == "concept:name":
-                    CASES[case].append({"concept:name": ev.attributes["value"].value})
+            elif (
+                current_case is not None
+                and elem.get("key") == "concept:name"
+                and "case_" not in elem.get("value")
+            ):
+                CASES[current_case].append({"concept:name": elem.get("value")})
 
     return CASES
 
