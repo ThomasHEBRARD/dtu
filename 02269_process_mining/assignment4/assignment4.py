@@ -284,8 +284,8 @@ def fitness_token_replay(_log, _mined_model):
             )
 
         sink = _mined_model.places[len(_mined_model.places)]
-        
-        # Pull end token: 
+
+        # Pull end token:
         if sink.mark == 0:
             # If not there, add a missing token and consume it
             _mined_model.m += 1
@@ -294,7 +294,6 @@ def fitness_token_replay(_log, _mined_model):
             # Consume one and the rest will be remaining tokens
             sink.unmark()
             _mined_model.c += 1
-
 
         m.append(_mined_model.m)
         r.append(_mined_model.get_remaining_tokens())
